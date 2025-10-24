@@ -1,0 +1,43 @@
+name: SRS AI Review
+
+on:
+  pull_request:
+    types: [labeled]
+    paths:
+      - 'docs/SRS/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    if: github.event.label.name == 'ci-review'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          python -m pip install -U pip
+          # ★ review_runner が google.genai を import するため、google-genai も入れる
+          pip install -U openai python-dotenv requests google-genai
+
+      - name: Run CI reviewer
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          python generate_review/ci_review.py
+          # ※ review_runner にモデルをハードコードしているなら引数不要
+          # モデルを上書きしたいときは --models を渡せる（互換仕様）
+
