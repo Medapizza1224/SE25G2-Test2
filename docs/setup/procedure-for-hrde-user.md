@@ -22,9 +22,9 @@
         - `Docker レジストリのユーザー名`: リモート開発環境の利用者に個別で連絡します。
         - `Docker レジストリのパスワード`: リモート開発環境の利用者に個別で連絡します。
         - `Git リポジトリのオーナーの名前`: 今回は`HazeyamaLab`と入力します。
-        - `Git リポジトリの名前`: 今回は **`systemdesign2024report`** と入力します。
+        - `Git リポジトリの名前`: 今回は **`se25g2`** と入力します。
         - `Git ブランチの名前`: 今回は`main`と入力します。
-        - `devcontainer.json へのパス`: 今回は **`.devcontainer/systemdesign2024report-hrde/devcontainer.json`** と入力します。
+        - `devcontainer.json へのパス`: 今回は **`.devcontainer/se25g2-hrde/devcontainer.json`** と入力します。
     3. 入力が終わったら画面右下`Create Workspace`ボタンをクリックします。
 4. 開発コンテナーの作成が完了するまで待ちます。開発コンテナーの作成には数分間かかることがあります。開発コンテナーの作成に成功すると、画面中央に緑色の枠が表示されます。
 

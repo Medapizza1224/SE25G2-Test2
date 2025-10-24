@@ -181,7 +181,7 @@
             - `req.sendRedirect(<String型 リダイレクト先のURL>)`を呼び出して、リダイレクトを返す。
                 - 例：`@WebServlet(value = { "/example/path" })`が付いたサーブレットに対応するURLにリダイレクトする場合は、次のように記述する。
                     - `req.sendRedirect(req.getContextPath() + "/example/path")`
-                    - `req.sendRedirect("/systemdesign2024report/example/path")`（コンテキストパスが`/systemdesign2024report`の場合）
+                    - `req.sendRedirect("/se25g2/example/path")`（コンテキストパスが`/se25g2`の場合）
             - リダイレクト先に文字列を渡したい場合は、リダイレクト先のURLにクエリパラメータを付ける。
                 - クエリパラメータの値に日本語を用いる場合は、値の部分を`URLEncoder.encode(<String型 値>, "UTF-8")`の戻り値にする。
                 - 例：`req.sendRedirect(req.getContextPath() + "/example/path?messageFromPrev=" + URLEncoder.encode("OK牧場！", "UTF-8"))`
@@ -247,7 +247,7 @@
             <p>${1 + 1}</p>
             <p>${"文字列"}</p>
             <p>${fn:escapeXml(requestScope.example.getId())}</p>
-            <a href="/systemdesign2024report/example/show-one?id=${fn:escapeXml(requestScope.example.getId())}">${fn:escapeXml(requestScope.example.getId())}番の詳細情報</a>
+            <a href="/se25g2/example/show-one?id=${fn:escapeXml(requestScope.example.getId())}">${fn:escapeXml(requestScope.example.getId())}番の詳細情報</a>
             ```
     - ⭐️ EL式の内部でサーブレットから渡された値を得たい場合は、`requestScope.<キー>`という式を用いる。
         - サーブレットから渡された文字列をそのまま出力する：`${requestScope.<キー>}`
@@ -288,7 +288,7 @@
             <a href="${fn:escapeXml(pageContext.servletContext.getContextPath())}/example/show-all">一覧を表示</a>
             ```
             ```jsp
-            <a href="/systemdesign2024report/example/show-all">一覧を表示</a>
+            <a href="/se25g2/example/show-all">一覧を表示</a>
             ```
     - ⭐️ `href`属性やリンクテキストにもEL式を使用することができる。
         ```jsp
@@ -304,7 +304,7 @@
         <ul>
           <c:forEach var="item" items="${requestScope.exampleList}">
             <li>
-              <a href="/systemdesign2024report/example/show-one?id=${fn:escapeXml(item.getId())}">${fn:escapeXml(item.getName())}さんの詳細情報を表示</a>
+              <a href="/se25g2/example/show-one?id=${fn:escapeXml(item.getId())}">${fn:escapeXml(item.getName())}さんの詳細情報を表示</a>
             </li>
           </c:for>
         </ul>
@@ -338,7 +338,7 @@
         </form>
         ```
         ```jsp
-        <form action="/systemdesign2024report/example/create" method="post">
+        <form action="/se25g2/example/create" method="post">
           <ul>
             <li>
               <label>
