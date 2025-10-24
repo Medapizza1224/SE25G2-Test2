@@ -1,0 +1,13 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "デバッグ",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": "5005",
+      "preLaunchTask": "gradle: appStartDebug",
+      "postDebugTask": "gradle: appStop"
+    }
+  ]
+}
