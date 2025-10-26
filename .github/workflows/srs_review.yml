@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [labeled]
     paths:
-      - 'docs/SRS/**'
+      - 'docs/SRS/**/*.md'
 
 permissions:
   contents: read
@@ -40,4 +40,3 @@ jobs:
           python generate_review/ci_review.py
           # ※ review_runner にモデルをハードコードしているなら引数不要
           # モデルを上書きしたいときは --models を渡せる（互換仕様）
-

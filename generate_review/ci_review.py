@@ -244,9 +244,9 @@ def build_pr_review_comments_from_json(repo: str, pr_number: int, token: str, it
         if not line_text or not comment:
             continue
 
-        # 今回は docs/SRS/ 配下しかレビューしない前提
+        # 今回は docs/SRS/ 配下の Markdown だけをレビュー対象とする前提
         # まず対象 path 候補を列挙（SRS 内の一番似ているファイルに付ける）
-        srs_paths = [p for p in patch_map.keys() if p.startswith("docs/SRS/")]
+        srs_paths = [p for p in patch_map.keys() if p.startswith("docs/SRS/") and p.lower().endswith(".md")]
         if not srs_paths:
             continue
 
@@ -298,7 +298,11 @@ def main():
 
     # 1) PRの変更ファイル一覧
     files_meta = get_changed_files(repo, pr_number_i, token)
-    srs_files = [f for f in files_meta if f.get("filename", "").startswith("docs/SRS/")]
+    # docs/SRS/ 配下の Markdown のみを対象にする
+    srs_files = [
+        f for f in files_meta
+        if (fn := f.get("filename", "")).startswith("docs/SRS/") and fn.lower().endswith(".md")
+    ]
     if not srs_files:
         info("docs/SRS/ 配下の変更が見つからないため、処理を終了します。")
         return
@@ -363,4 +367,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
