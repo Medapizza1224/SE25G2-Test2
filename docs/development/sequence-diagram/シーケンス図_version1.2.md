@@ -488,5 +488,5 @@ DAOは該当するユーザー名のデータ件数を返し、コントロー�
 ## 依存成果物のURL
  [機能仕様書](https://github.com/HazeyamaLab/se25g2/blob/main/docs/development/%E6%A9%9F%E8%83%BD%E4%BB%95%E6%A7%98%E6%9B%B8/%E3%82%B7%E3%82%B9%E3%83%86%E3%83%A0%E3%83%97%E3%83%AD%E3%82%B0%E3%83%A9%E3%83%9F%E3%83%B3%E3%82%B0%E3%80%80%E6%A9%9F%E8%83%BD%E4%BB%95%E6%A7%98%E6%9B%B8version9.1.md)
  
- [画面設計Figma](https://www.figma.com/design/lzUis57XlxyyV00hpEj4Gv/G2%E7%94%BB%E9%9D%A2%E8%A8%AD%E8%A8%88-%EF%BC%88%E7%AC%AC%EF%BC%92%E5%9B%9E%E3%82%A4%E3%83%B3%E3%82%B9%E3%83%9A%E3%82%AF%E3%82%B7%E3%83%A7%E3%83%B3%EF%BC%89?node-id=0-1&t=FUHm8Ba6dhTTQ8JV-1)
+ [画面設計Figma](https://www.figma.com/design/bnrNQGC2RKWtd0eTVM6Fvj/G2%E7%94%BB%E9%9D%A2%E8%A8%AD%E8%A8%88%EF%BC%88%E7%AC%AC%EF%BC%92%E5%9B%9E%E3%82%A4%E3%83%B3%E3%82%B9%E3%83%9A%E3%82%AF%E3%82%B7%E3%83%A7%E3%83%B3%EF%BC%89?node-id=0-1&t=OUffpoViq1e5bXMX-1)
  
