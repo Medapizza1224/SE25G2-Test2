@@ -29,20 +29,15 @@ sequenceDiagram
     DAO->>DB: SQL文を実行<br>UPDATE orders SET order_status='調理中', order_date=NOW() WHERE order_id = ?
     
     DB-->>DAO: 実行結果を返却<br>Success or Error
-    DAO->>DB: SQL文を実行<br>SELECT SUM(price * quantity) WHERE order_status IN ('調理中', '提供済み')
     
     alt 更新成功
-        DB->>DAO: コミット
-        DB-->>DAO: 計算結果を返却<br>ResultSet
-        DAO-->>Control: 計算結果を返却<br>return (int totalAmount)
-        Control-->>Servlet: 処理成功 <br>OrderResult(true, totalAmount)
+        DAO-->>Control: 実行結果を返却<br>return result
+        Control-->>Servlet: 処理成功 <br>OrderResult(true, null)
         Servlet->>OrderCompJSP: orderCompleted.jspへリダイレクト
         OrderCompJSP-->>User: 注文完了画面を表示
-        User->>OrderCompJSP: 「OK」ボタンをクリック
-        OrderCompJSP->>OrderJSP: order.jspへリダイレクト
-        OrderJSP->>User: 更新された注文済み金額を表示
     else 更新失敗 (Exception発生)
         DAO->>DB: ロールバック
+        DAO->>DB: SQL文を実行<br>SELECT SUM(price * quantity) WHERE order_status IN ('調理中', '提供済み')
         DB-->>DAO: 計算結果を返却<br> ResultSet
         DAO-->>Control: 失敗を通知<br>throw Failure(totalAmount)
         Control-->>Servlet: 失敗失敗<br>OrderResult(false, totalAmount)
@@ -62,7 +57,7 @@ DAOは、更新の成否にかかわらず画面表示用として、現在の�
 
 * 更新に成功した場合<br>
    1. DAOは、最新の注文済み合計金額（ステータスが「調理中」または「提供済み」の合計金額）を算出し、コミットを実行して変更を確定させる。
-   2. DAOは算出した合計金額を含めた成功結果を返し、サーブレットは「注文完了画面（order_completed.jsp）」へリダイレクトする。
+   2. DAOは算出した合計金額を含めた成功結果を返し、サーブレットは「注文完了画面（orderCompleted.jsp）」へリダイレクトする。
    3. ユーザーが完了画面上の「OK」ボタンをクリックすると、システムは「注文画面（order.jsp）」へと遷移させる。
    4. 遷移後の画面では注文カゴが空になり、画面上の「注文済み合計金額」には今回の注文分を含んだ最新の金額が反映される。
 
