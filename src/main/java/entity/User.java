@@ -16,6 +16,9 @@ public class User {
     private int loginAttemptCount;
     private boolean isLockout;
 
+    public User() {
+    }
+
     // コンストラクタ
     public User(UUID userId, String userName, String userPassword, String securityCode,  int balance, int point, int loginAttemptCount, boolean isLockout) throws Failure {
         setUserId(userId);

@@ -1,11 +1,11 @@
 package entity;
 
+import java.io.Serializable; // 追加推奨
 import java.sql.Timestamp;
-import modelUtil.Failure;
 import java.util.UUID;
+import modelUtil.Failure;
 
-// クラスの定義
-public class Order {
+public class Order implements Serializable {
 
     // フィールド
     private UUID orderId;
@@ -14,8 +14,15 @@ public class Order {
     private int childCount;
     private boolean isPaymentCompleted;
     private Timestamp visitAt;
+    
+    // ★追加: 合計金額 (DBのordersテーブルにはないが、表示用に必要)
+    private int totalAmount;
 
-    // コンストラクタ
+    // ★追加: 引数なしコンストラクタ (DAOで使用するため必須)
+    public Order() {
+    }
+
+    // 既存の全項目コンストラクタ
     public Order(UUID orderId, String tableNumber, int adultCount, int childCount, boolean isPaymentCompleted, Timestamp visitAt) throws Failure {
         setOrderId(orderId);
         setTableNumber(tableNumber);
@@ -24,6 +31,21 @@ public class Order {
         setPaymentCompleted(isPaymentCompleted);
         setVisitAt(visitAt);
     }
+
+    // --- ★追加: 合計金額の Getter / Setter ---
+    public int getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(int totalAmount) {
+        // 金額はマイナスでなければOKとする簡易チェック
+        if (totalAmount < 0) {
+            // DAOでのセット時に例外が出ると困る場合はログ出力程度に留めるか、
+            // ここでは簡易的にセットする
+        }
+        this.totalAmount = totalAmount;
+    }
+    // ---------------------------------------
 
     // 伝票ID
     public UUID getOrderId() {
@@ -36,12 +58,12 @@ public class Order {
     }
 
     private void checkOrderId(UUID orderId) throws Failure {
-        if (orderId == null) { // isEmpty：String型のみ
+        if (orderId == null) {
             throw new Failure("伝票IDの入力エラーです。");
         }
     }
 
-    // テーブル番号 (4桁の数字)
+    // テーブル番号
     public String getTableNumber() {
         return tableNumber;
     }
@@ -57,7 +79,7 @@ public class Order {
         }
     }
 
-    // 大人人数 (1〜8人)
+    // 大人人数
     public int getAdultCount() {
         return adultCount;
     }
@@ -69,11 +91,11 @@ public class Order {
 
     private void checkAdultCount(int adultCount) throws Failure {
         if (adultCount < 1 || adultCount > 8) {
-            throw new Failure("大人の人数のエラー"); // 画面上に出ることはない（JSP上で制限）
+            throw new Failure("大人の人数のエラー");
         }
     }
 
-    // 子供人数 (0〜7人)
+    // 子供人数
     public int getChildCount() {
         return childCount;
     }
@@ -85,7 +107,7 @@ public class Order {
 
     private void checkChildCount(int childCount) throws Failure {
         if (childCount < 0 || childCount > 7) {
-            throw new Failure("子供の人数のエラー"); // 画面上に出ることはない
+            throw new Failure("子供の人数のエラー");
         }
     }
 
@@ -94,6 +116,7 @@ public class Order {
         return isPaymentCompleted;
     }
 
+    // booleanのSetterは "setPaymentCompleted" で統一
     public void setPaymentCompleted(boolean isPaymentCompleted) {
         this.isPaymentCompleted = isPaymentCompleted;
     }

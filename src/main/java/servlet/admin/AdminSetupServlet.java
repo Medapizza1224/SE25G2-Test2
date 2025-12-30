@@ -8,7 +8,7 @@ import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
-@WebServlet(value = { "/Setup" })
+@WebServlet(value = { "/admin-setup" })
 @MultipartConfig(
     fileSizeThreshold = 1024 * 1024 * 2, // 読み込み境界
     maxFileSize = 1024 * 1024 * 10,      // 1個のファイルの最大アップロード容量（10MB）

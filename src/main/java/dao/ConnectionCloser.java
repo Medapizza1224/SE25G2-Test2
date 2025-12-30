@@ -2,12 +2,13 @@ package dao;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List; // 追加
+import java.util.List;
 
 /**
  * {@link java.sql.Connection#close()}を抽象化する。
+ * 他のパッケージからも利用できるように public を付与
  */
-class ConnectionCloser {
+public class ConnectionCloser { // ← ここに public を追加
     /**
      * 単一の接続を閉じる（既存メソッド）
      */
@@ -43,7 +44,7 @@ class ConnectionCloser {
             }
         }
         
-        // エラーログを出力するなどはここで検討（今回は例外を投げずに握りつぶすか、ログのみ推奨）
+        // エラーログを出力（今回はコンソールに出力して処理続行）
         if (firstException != null) {
             System.err.println("一部のDB接続切断に失敗しました: " + firstException.getMessage());
         }

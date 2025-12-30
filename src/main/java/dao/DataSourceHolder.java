@@ -19,7 +19,7 @@ public class DataSourceHolder {
     static {
         if (_dataSources.isEmpty()) {
             try {
-                // プロパティファイルのパス取得（ファイルが存在しなくてもコード設定で動くようにします）
+                // プロパティファイルのパス取得
                 String propsPath = null;
                 try {
                     propsPath = DataSourceHolder.class.getClassLoader()
@@ -36,7 +36,7 @@ public class DataSourceHolder {
                         config = new HikariConfig();
                     }
 
-                    // ★ここに追記：ユーザーとパスワードを強制的に指定★
+                    // ★ユーザーとパスワードを強制的に指定
                     config.setUsername("root");
                     config.setPassword("root");
                     
@@ -51,14 +51,25 @@ public class DataSourceHolder {
                     _dataSources.add(new HikariDataSource(config));
                 }
             } catch (Exception e) {
-                e.printStackTrace(); // エラーログをコンソールに出す
+                e.printStackTrace();
                 throw new RuntimeException("DB接続プールの初期化に失敗しました: " + e.getMessage(), e);
             }
         }
     }
 
+    // --- ここを追加しました ---
+    /**
+     * デフォルトの接続（Node1）を取得する
+     * LedgerMonitorなどがこのメソッド名で呼び出しているため追加
+     */
+    public Connection getConnection() throws SQLException {
+        return getNode1Connection();
+    }
+    // -------------------------
+
     // 読み込み用 (Node1)
     public Connection getNode1Connection() throws SQLException {
+        if (_dataSources.isEmpty()) throw new SQLException("DataSourceが初期化されていません");
         return _dataSources.get(0).getConnection();
     }
 
@@ -66,10 +77,13 @@ public class DataSourceHolder {
     public List<Connection> getAllConnections() throws SQLException {
         List<Connection> connections = new ArrayList<>();
         try {
+            if (_dataSources.isEmpty()) throw new SQLException("DataSourceが初期化されていません");
+            
             for (DataSource ds : _dataSources) {
                 connections.add(ds.getConnection());
             }
         } catch (SQLException e) {
+            // エラー時は開いた接続をすべて閉じる
             for (Connection c : connections) {
                 try { c.close(); } catch (Exception ignore) {}
             }
