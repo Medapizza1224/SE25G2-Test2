@@ -1,24 +1,44 @@
 services:
-  devcontainer:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    depends_on:
-      - mysql
-      - adminer
-  mysql:
-    image: mysql:latest
+  # Node 1 (Main)
+  db1:
+    image: mysql:8.0
+    container_name: blockchain_node_1
     environment:
-      - TZ=Asia/Tokyo
-      - MYSQL_ROOT_PASSWORD=password
-      - MYSQL_DATABASE=initdb
-      - MYSQL_USER=mysql
-      - MYSQL_PASSWORD=password
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --key_buffer_size=1048576 --myisam_sort_buffer_size=1048576 --innodb_buffer_pool_size=5242880 --innodb_log_buffer_size=1048576 --innodb-redo-log-capacity=8388608 --max-connections=24 --open_files_limit=1024 --table_definition_cache=400 --table_open_cache=256
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: restaurant_db
+    ports:
+      - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
-  adminer:
-    image: adminer:latest
+      - db1_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Node 2 (Distributed)
+  db2:
+    image: mysql:8.0
+    container_name: blockchain_node_2
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: restaurant_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - db2_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Node 3 (Distributed)
+  db3:
+    image: mysql:8.0
+    container_name: blockchain_node_3
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: restaurant_db
+    ports:
+      - "3308:3306"
+    volumes:
+      - db3_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
 
 volumes:
-  mysql_data:
+  db1_data:
+  db2_data:
+  db3_data:
