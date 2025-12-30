@@ -4,9 +4,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    volumes:
-      # プロジェクト全体をコンテナ内にマウント
-      - ../:/workspaces/project:cached
+    # プロジェクト全体をコンテナ内にマウント
+    # volumes:
+    #   - ../:/workspaces/project:cached
     command: sleep infinity
     # ネットワークを共有するためDBが見えるようになる
     depends_on:
