@@ -4,7 +4,7 @@ import modelUtil.Failure;
 import java.util.UUID;
 
 // クラスの定義
-public class Users {
+public class User {
 
     // フィールド
     private UUID userId;
@@ -17,7 +17,7 @@ public class Users {
     private boolean isLockout;
 
     // コンストラクタ
-    public Users(UUID userId, String userName, String userPassword, String securityCode,  int balance, int point, int loginAttemptCount, boolean isLockout) throws Failure {
+    public User(UUID userId, String userName, String userPassword, String securityCode,  int balance, int point, int loginAttemptCount, boolean isLockout) throws Failure {
         setUserId(userId);
         setUserName(userName);
         setUserPassword(userPassword);

@@ -1,4 +1,7 @@
--- 1. 既存テーブルのクリーンアップ（外部キーの依存関係順に削除）
+-- ==========================================
+-- 1. 既存テーブルのクリーンアップ
+-- （外部キーの依存関係順に削除）
+-- ==========================================
 DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS analysis;
 DROP TABLE IF EXISTS order_items;
@@ -43,8 +46,7 @@ CREATE TABLE ledger (
 INSERT INTO ledger (prev_hash, curr_hash, sender_id, amount, signature)
 VALUES ('0', 'GENESIS_HASH', 'SYSTEM', 0, 'SYSTEM_SIG');
 
--- テストユーザー (本来はJava側で鍵生成して登録しますが、初期値としてダミーを入れます)
--- ※実運用の際はJava側でUPDATEしてください
+-- テストユーザー
 INSERT INTO users (user_id, user_name, user_password, security_code_hash, balance, point, encrypted_private_key, public_key)
 VALUES ('user001', 'TestUser', 'pass', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 50000, 100, 'DUMMY_ENC_KEY', 'DUMMY_PUB_KEY');
 
@@ -60,11 +62,11 @@ CREATE TABLE admins (
     admin_password VARCHAR(255)
 );
 
--- 商品マスタ
+-- 商品
 CREATE TABLE products (
     product_id VARCHAR(32) PRIMARY KEY, 
     product_name VARCHAR(64), 
-    image BLOB, 
+    image VARCHAR(255), 
     category VARCHAR(32), 
     price INT, 
     sales_status VARCHAR(32), 
@@ -125,6 +127,12 @@ CREATE TABLE analysis (
     FOREIGN KEY (product_id) REFERENCES products(product_id)
 );
 
--- 初期商品データ
-INSERT INTO products (product_id, product_name, price, sales_status) 
-VALUES ('DRINK0001', 'Beer', 500, 'ON_SALE');
+-- ==========================================
+-- 初期商品データ投入（一覧表示確認用）
+-- ==========================================
+INSERT INTO products (product_id, product_name, category, price, sales_status, image, update_at) VALUES 
+('PROD001', 'ハンバーグ定食', 'FOOD', 1200, '販売中', NULL, NOW()),
+('PROD002', 'シーザーサラダ', 'FOOD', 800, '販売中', NULL, NOW()),
+('PROD003', '生ビール', 'DRINK', 500, '販売中', NULL, NOW()),
+('PROD004', 'ウーロン茶', 'DRINK', 300, '販売中', NULL,  NOW()),
+('PROD005', '季節のパフェ', 'DESSERT', 950, '販売中', NULL,  NOW());

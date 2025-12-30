@@ -2,46 +2,50 @@ package dao;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List; // 追加
 
 /**
  * {@link java.sql.Connection#close()}を抽象化する。
- * 
- * このクラスのインスタンスをDAOの{@code private}フィールドに割り当てておくことで、DAOの各メソッドで接続を閉じる処理を記述しやすくなる。
- * 
- * <pre>{@code
- * class SampleDao {
- *   // `ConnectionCloser`型のオブジェクトをDAOのフィールドに割り当てておく。
- *   private final ConnectionCloser connectionCloser;
- *   public SampleDao() {
- *     this.connectionCloser = new ConnectionCloser();
- *   }
- *   public List&lt;SampleEntity&gt; getAll() {
- *     Connection connection = null;
- *     try {
- *       // 何らかの処理
- *     } catch (SQLException exception) {
- *       // 何らかの処理
- *     } finally {
- *       // `try`句および`catch`句から値を返したり例外を投げたりする前に接続を閉じる。
- *       this.connectionCloser.close(connection);
- *     }
- *   }
- * }
- * }</pre>
  */
 class ConnectionCloser {
-  /**
-   * {@link java.sql.Connection#close()}を抽象化する。
-   * 引数の{@link java.sql.Connection}型のオブジェクトに対して{@code close}メソッドを呼び出す。
-   * 万が一エラーが発生した場合は{@link DaoException}を投げる。
-   */
-  public void closeConnection(Connection connection) throws DaoException {
-    if (connection != null) {
-      try {
-        connection.close();
-      } catch (SQLException sqlException) {
-        throw new DaoException("データベースとの通信中にエラーが発生しました。", sqlException);
-      }
+    /**
+     * 単一の接続を閉じる（既存メソッド）
+     */
+    public void closeConnection(Connection connection) throws DaoException {
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException sqlException) {
+                throw new DaoException("データベース切断時にエラーが発生しました。", sqlException);
+            }
+        }
     }
-  }
+
+    /**
+     * 【追加】複数の接続をまとめて閉じる
+     * 分散書き込み処理の finally ブロックで使用する。
+     */
+    public void closeConnections(List<Connection> connections) {
+        if (connections == null) return;
+        
+        // 1つ閉じるのに失敗しても、残りを閉じようとする実装
+        SQLException firstException = null;
+
+        for (Connection conn : connections) {
+            try {
+                if (conn != null && !conn.isClosed()) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                if (firstException == null) {
+                    firstException = e;
+                }
+            }
+        }
+        
+        // エラーログを出力するなどはここで検討（今回は例外を投げずに握りつぶすか、ログのみ推奨）
+        if (firstException != null) {
+            System.err.println("一部のDB接続切断に失敗しました: " + firstException.getMessage());
+        }
+    }
 }

@@ -5,7 +5,7 @@ package entity;
 import modelUtil.Failure;
 
 // クラスの定義
-public class OrderCounts {
+public class OrderCount {
 
     // フィールド
     private String productId;
@@ -16,7 +16,7 @@ public class OrderCounts {
     private int orderCountFromGroup;
 
     // コンストラクタ
-    public OrderCounts(String productId, int orderCountFromSingleAdult, int orderCountFromTwoAdults, int orderCountFromFamilyGroup, int orderCountFromAdultGroup, int orderCountFromGroup) throws Failure {
+    public OrderCount(String productId, int orderCountFromSingleAdult, int orderCountFromTwoAdults, int orderCountFromFamilyGroup, int orderCountFromAdultGroup, int orderCountFromGroup) throws Failure {
         setProductId(productId);
         setOrderCountFromSingleAdult(orderCountFromSingleAdult);
         setOrderCountFromTwoAdults(orderCountFromTwoAdults);

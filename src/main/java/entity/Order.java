@@ -5,7 +5,7 @@ import modelUtil.Failure;
 import java.util.UUID;
 
 // クラスの定義
-public class Orders {
+public class Order {
 
     // フィールド
     private UUID orderId;
@@ -16,7 +16,7 @@ public class Orders {
     private Timestamp visitAt;
 
     // コンストラクタ
-    public Orders(UUID orderId, String tableNumber, int adultCount, int childCount, boolean isPaymentCompleted, Timestamp visitAt) throws Failure {
+    public Order(UUID orderId, String tableNumber, int adultCount, int childCount, boolean isPaymentCompleted, Timestamp visitAt) throws Failure {
         setOrderId(orderId);
         setTableNumber(tableNumber);
         setAdultCount(adultCount);

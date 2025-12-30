@@ -3,14 +3,14 @@ package entity;
 import modelUtil.Failure;
 
 // クラスの定義
-public class Admins {
+public class Admin {
 
     // フィールド ＝ データ一覧
     private String adminName;
     private String adminPassword;
 
     // コンストラクタ ＝ 初期値
-    public Admins (String adminName, String adminPassword) throws Failure {
+    public Admin (String adminName, String adminPassword) throws Failure {
         setAdminName(adminName);
         setAdminPassword(adminPassword);
     }

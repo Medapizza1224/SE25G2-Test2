@@ -1,1 +1,24 @@
 ./gradlew appRun
+
+
+
+mysql -h db1 -P 3306 -u root -proot restaurant_db < setup.sql
+
+mysql -h db2 -P 3306 -u root -proot restaurant_db < setup.sql
+
+mysql -h db3 -P 3306 -u root -proot restaurant_db < setup.sql
+
+
+
+mysql -h db1 -P 3306 -u root -proot restaurant_db -e "SHOW TABLES;"
+
+mysql -h db1 -P 3306 -u root -proot restaurant_db -e "SELECT product_id, product_name, price FROM products;"
+
+mysql -h db3 -P 3306 -u root -proot restaurant_db -e "SELECT product_id, product_name FROM products;"
+
+
+
+
+git config --global user.email "b233105y@st.u-gakugei.ac.jp"
+git config --global user.name "Medashaun1224"
+

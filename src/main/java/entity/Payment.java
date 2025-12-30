@@ -5,7 +5,7 @@ import modelUtil.Failure;
 import java.util.UUID;
 
 // クラスの定義
-public class Payments {
+public class Payment {
 
     // フィールド
     private UUID orderId;
@@ -15,7 +15,7 @@ public class Payments {
     private Timestamp paymentCompletedAt;
 
     // コンストラクタ
-    public Payments(UUID orderId, UUID userId, int usedPoints, int earnedPoints, Timestamp paymentCompletedAt) throws Failure {
+    public Payment(UUID orderId, UUID userId, int usedPoints, int earnedPoints, Timestamp paymentCompletedAt) throws Failure {
         setOrderId(orderId);
         setUserId(userId);
         setUsedPoints(usedPoints);

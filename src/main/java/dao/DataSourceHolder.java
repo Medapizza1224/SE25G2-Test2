@@ -1,51 +1,80 @@
 package dao;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.sql.DataSource;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
-/**
- * DAOで利用する{@link javax.sql.DataSource}を提供する。
- * 
- * このクラスのインスタンスをDAOの{@code private}フィールドに割り当てておくことで、DAOの各メソッドで接続を取得する処理を記述しやすくなる。
- * 
- * <pre>{@code
- * class SampleDao {
- *   // `DataSourceHolder.dataSource`をDAOのフィールドに割り当てておく。
- *   private final DataSource dataSource;
- *   public SampleDao() {
- *     this.dataSourceHolder = new DataSourceHolder().dataSource;
- *   }
- *   public List&lt;SampleEntity&gt; getAll() {
- *     Connection connection = null;
- *     try {
- *       // `dataSource`フィールドに割り当てた`DataSource`オブジェクトの`getConnection`メソッドを呼び出して`java.sql.Connection`型のオブジェクトを得る。
- *       connection = this.dataSource.getConnection();
- *       // 何らかの処理
- *     } catch (SQLException exception) {
- *       // 何らかの処理
- *     }
- *   }
- * }
- * }</pre>
- */
-class DataSourceHolder {
-  private static HikariConfig _hikariConfig;
-  private static DataSource _dataSource;
+public class DataSourceHolder {
+    
+    private static List<DataSource> _dataSources = new ArrayList<>();
+    
+    // Docker Compose上のサービス名
+    private static final String[] DB_NODES = { "db1", "db2", "db3" };
 
-  public final DataSource dataSource;
+    static {
+        if (_dataSources.isEmpty()) {
+            try {
+                // プロパティファイルのパス取得（ファイルが存在しなくてもコード設定で動くようにします）
+                String propsPath = null;
+                try {
+                    propsPath = DataSourceHolder.class.getClassLoader()
+                        .getResource("dataSource.properties").getPath();
+                } catch (Exception ignore) {
+                    // ファイルが見つからなくても続行
+                }
 
-  public DataSourceHolder() {
-    if (DataSourceHolder._hikariConfig == null) {
-      DataSourceHolder._hikariConfig = new HikariConfig(
-          this.getClass().getClassLoader().getResource("dataSource.properties").getPath());
+                for (String node : DB_NODES) {
+                    HikariConfig config;
+                    if (propsPath != null) {
+                        config = new HikariConfig(propsPath);
+                    } else {
+                        config = new HikariConfig();
+                    }
+
+                    // ★ここに追記：ユーザーとパスワードを強制的に指定★
+                    config.setUsername("root");
+                    config.setPassword("root");
+                    
+                    // ドライバクラスも明示
+                    config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+
+                    // URLの設定 (Docker内の各ノードに向ける)
+                    String url = "jdbc:mysql://" + node + ":3306/restaurant_db?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8";
+                    config.setJdbcUrl(url);
+                    config.setPoolName("HikariPool-" + node);
+
+                    _dataSources.add(new HikariDataSource(config));
+                }
+            } catch (Exception e) {
+                e.printStackTrace(); // エラーログをコンソールに出す
+                throw new RuntimeException("DB接続プールの初期化に失敗しました: " + e.getMessage(), e);
+            }
+        }
     }
 
-    if (DataSourceHolder._dataSource == null) {
-      DataSourceHolder._dataSource = new HikariDataSource(DataSourceHolder._hikariConfig);
+    // 読み込み用 (Node1)
+    public Connection getNode1Connection() throws SQLException {
+        return _dataSources.get(0).getConnection();
     }
 
-    this.dataSource = DataSourceHolder._dataSource;
-  }
+    // 書き込み用 (全ノード)
+    public List<Connection> getAllConnections() throws SQLException {
+        List<Connection> connections = new ArrayList<>();
+        try {
+            for (DataSource ds : _dataSources) {
+                connections.add(ds.getConnection());
+            }
+        } catch (SQLException e) {
+            for (Connection c : connections) {
+                try { c.close(); } catch (Exception ignore) {}
+            }
+            throw e;
+        }
+        return connections;
+    }
 }

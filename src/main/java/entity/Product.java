@@ -4,11 +4,11 @@ import java.sql.Timestamp;
 import modelUtil.Failure;
 
 // クラスの定義
-public class Products {
+public class Product {
 
     // フィールド
     private String productId;
-    private byte[] image;
+    private String image;
     private String productName;
     private String category;
     private int price;
@@ -16,9 +16,9 @@ public class Products {
     private Timestamp updateAt;
 
     // コンストラクタ
-    public Products (String productId, byte[] imgae, String productName, String category, int price, String salesSatus, Timestamp updateAt) throws Failure {
+    public Product (String productId, String image, String productName, String category, int price, String salesStatus, Timestamp updateAt) throws Failure {
         setProductId(productId);
-        setImage(image);
+        setImage(image); 
         setProductName(productName);
         setCategory(category);
         setPrice(price);
@@ -48,19 +48,20 @@ public class Products {
     }
 
     // 商品画像
-    public byte[] getImage() {
+    public String getImage() {
         return image;
     }
 
-    public void setImage(byte[] image) throws Failure {
+    public void setImage(String image) throws Failure {
         checkImage(image);
         this.image = image;
     }
 
-    private void checkImage(byte[] image) throws Failure {
+    private void checkImage(String image) throws Failure {
+        /* 
         if (image == null) {
             throw new Failure("画像をアップロードしてください。");
-        }
+        }*/
     }
 
     // 商品名
@@ -78,7 +79,7 @@ public class Products {
             throw new Failure("商品名の入力エラーです。");
         }
         if (productName.length() > 32){
-            throw new Failure ("商品名は、半角英数20文字以内です。");
+            throw new Failure ("商品名は、半角英数32文字以内です。");
         }
     }
 
