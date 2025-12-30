@@ -30,7 +30,7 @@ public class UserPayment {
             int newBalance = dao.userPayment(userId, orderId, amount, securityCode);
             
             // ポイント計算（表示用）
-            int earnedPoints = (int)(amount * 0.01);
+            int earnedPoints = (int)(amount * 0.1);
             
             return new UserPaymentResult(amount, earnedPoints, newBalance);
 
