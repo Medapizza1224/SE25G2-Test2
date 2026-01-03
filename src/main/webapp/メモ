@@ -1,36 +1,27 @@
 ./gradlew appRun
 
+./gradlew clean
 
 
 mysql -h db1 -P 3306 -u root -proot restaurant_db < setup.sql
-mysql -h db2 -P 3306 -u root -proot restaurant_db < setup.sql
-mysql -h db3 -P 3306 -u root -proot restaurant_db < setup.sql
-
-
 
 mysql -h db1 -P 3306 -u root -proot restaurant_db -e "SHOW TABLES;"
 mysql -h db1 -P 3306 -u root -proot restaurant_db -e "SELECT product_id, product_name, price FROM products;"
-mysql -h db3 -P 3306 -u root -proot restaurant_db -e "SELECT product_id, product_name FROM products;"
-
 
 git config --global user.email "b233105y@st.u-gakugei.ac.jp"
 git config --global user.name "Medashaun1224"
 
-
 mysql -h db1 -P 3306 -u root -proot restaurant_db -e "SELECT p.payment_completed_at AS 日時, u.user_name AS ユーザー, (SELECT SUM(price * quantity) FROM order_items WHERE order_id = p.order_id) AS 金額, p.earned_points AS 獲得P FROM payments p JOIN users u ON p.user_id = u.user_id ORDER BY p.payment_completed_at DESC;"
-mysql -h db2 -P 3306 -u root -proot restaurant_db -e "SELECT p.payment_completed_at AS 日時, u.user_name AS ユーザー, (SELECT SUM(price * quantity) FROM order_items WHERE order_id = p.order_id) AS 金額, p.earned_points AS 獲得P FROM payments p JOIN users u ON p.user_id = u.user_id ORDER BY p.payment_completed_at DESC;"
-mysql -h db3 -P 3306 -u root -proot restaurant_db -e "SELECT p.payment_completed_at AS 日時, u.user_name AS ユーザー, (SELECT SUM(price * quantity) FROM order_items WHERE order_id = p.order_id) AS 金額, p.earned_points AS 獲得P FROM payments p JOIN users u ON p.user_id = u.user_id ORDER BY p.payment_completed_at DESC;"
-
 
 mysql -h db1 -P 3306 -u root -proot restaurant_db -e "SELECT height, amount, LEFT(prev_hash, 10) as prev, LEFT(curr_hash, 10) as curr, created_at FROM ledger ORDER BY height ASC;"
-mysql -h db2 -P 3306 -u root -proot restaurant_db -e "SELECT height, amount, LEFT(prev_hash, 10) as prev, LEFT(curr_hash, 10) as curr, created_at FROM ledger ORDER BY height ASC;"
-mysql -h db3 -P 3306 -u root -proot restaurant_db -e "SELECT height, amount, LEFT(prev_hash, 10) as prev, LEFT(curr_hash, 10) as curr, created_at FROM ledger ORDER BY height ASC;"
+
+echo "--- DB1 Ledger Count ---"
+mysql -h db1 -P 3306 -u root -proot restaurant_db -N -e "SELECT COUNT(*) FROM ledger;"
 
 
-データベース数
-echo "--- DB1 ---" && \
-mysql -h db1 -P 3306 -u root -proot restaurant_db -N -e "SELECT COUNT(*) FROM ledger;" && \
-echo "--- DB2 ---" && \
-mysql -h db2 -P 3306 -u root -proot restaurant_db -N -e "SELECT COUNT(*) FROM ledger;" && \
-echo "--- DB3 ---" && \
-mysql -h db3 -P 3306 -u root -proot restaurant_db -N -e "SELECT COUNT(*) FROM ledger;"
+# 1. コンテナを停止・削除
+docker-compose down
+
+# 2. データの保存領域(ボリューム)を削除
+# ※これをやらないとrestaurant_dbが作成されません
+docker volume rm se25g2_mysql_data

@@ -20,8 +20,8 @@ public class ProductDao {
         Connection con = null;
 
         try {
-            // 読み込みなので Node1 (db1) だけに接続
-            con = dataSourceHolder.getNode1Connection();
+            // ★ここを修正
+            con = dataSourceHolder.getConnection();
 
             String sql = "SELECT * FROM products ORDER BY product_id";
             PreparedStatement ps = con.prepareStatement(sql);
@@ -29,7 +29,6 @@ public class ProductDao {
 
             while (rs.next()) {
                 try {
-                    // ここでEntity生成（チェック処理が走る）
                     Product p = new Product(
                         rs.getString("product_id"),
                         rs.getString("image"),
@@ -40,11 +39,8 @@ public class ProductDao {
                         rs.getTimestamp("update_at")
                     );
                     list.add(p);
-                    
                 } catch (Failure e) {
-                    // DBデータがEntityのバリデーションに違反していた場合
-                    // 画面全体をエラーにせず、その行だけスキップしてログを出す
-                    System.err.println("不正データをスキップ: ID=" + rs.getString("product_id") + " 理由=" + e.getMessage());
+                    System.err.println("不正データをスキップ: " + e.getMessage());
                 }
             }
         } catch (SQLException e) {

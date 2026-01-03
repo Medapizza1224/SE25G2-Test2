@@ -10,7 +10,6 @@ import java.security.PublicKey;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.Base64;
-import java.util.List;
 import java.util.UUID;
 
 import javax.crypto.Cipher;
@@ -29,7 +28,7 @@ import dao.ConnectionCloser;
 public class PaymentSetup extends HttpServlet {
     private static final long serialVersionUID = 1L;
     
-    // PaymentSystemと同じマスターキー
+    // PaymentSystemと同じマスターキーを使用
     private static final String APP_MASTER_KEY = "12345678901234567890123456789012";
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -38,7 +37,7 @@ public class PaymentSetup extends HttpServlet {
         
         DataSourceHolder dbHolder = new DataSourceHolder();
         ConnectionCloser closer = new ConnectionCloser();
-        List<Connection> conns = null;
+        Connection con = null;
 
         try {
             out.println("<html><body><h1>データセットアップ開始...</h1>");
@@ -50,7 +49,7 @@ public class PaymentSetup extends HttpServlet {
             String securityCodeRaw = "1234"; 
             int initialBalance = 50000;
             int initialPoint = 5000;
-            UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000"); // 固定IDにしておくと楽
+            UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000"); // 固定ID
 
             // ハッシュ化
             String securityCodeHash = PaymentSystem.calculateHash(securityCodeRaw);
@@ -74,35 +73,33 @@ public class PaymentSetup extends HttpServlet {
             out.println("<p>鍵ペア生成と暗号化完了。</p>");
 
             // ---------------------------------------------
-            // 2. DBへの書き込み (全ノード)
+            // 2. DBへの書き込み (単一ノード)
             // ---------------------------------------------
-            conns = dbHolder.getAllConnections();
+            // ★修正点: getAllConnections() ではなく getConnection() を使用
+            con = dbHolder.getConnection();
+            con.setAutoCommit(true);
             
             String sqlDelete = "DELETE FROM users WHERE user_id = ?";
             String sqlInsert = "INSERT INTO users (user_id, user_name, user_password, security_code, balance, point, login_attempt_count, is_lockout, encrypted_private_key, public_key) VALUES (?, ?, ?, ?, ?, ?, 0, FALSE, ?, ?)";
 
-            for (Connection c : conns) {
-                c.setAutoCommit(true);
+            // 既存があれば消す（上書き用）
+            try (PreparedStatement psDel = con.prepareStatement(sqlDelete)) {
+                psDel.setString(1, userId.toString());
+                psDel.executeUpdate();
+            }
 
-                // 既存があれば消す（上書き用）
-                try (PreparedStatement psDel = c.prepareStatement(sqlDelete)) {
-                    psDel.setString(1, userId.toString());
-                    psDel.executeUpdate();
-                }
-
-                // 新規登録
-                try (PreparedStatement psIns = c.prepareStatement(sqlInsert)) {
-                    psIns.setString(1, userId.toString());
-                    psIns.setString(2, userName);
-                    psIns.setString(3, "dummy_pass"); // ログイン機能を作っていない場合はダミー
-                    psIns.setString(4, securityCodeHash);
-                    psIns.setInt(5, initialBalance);
-                    psIns.setInt(6, initialPoint);
-                    psIns.setString(7, encryptedPrivateKeyStr);
-                    psIns.setString(8, publicKeyStr);
-                    
-                    psIns.executeUpdate();
-                }
+            // 新規登録
+            try (PreparedStatement psIns = con.prepareStatement(sqlInsert)) {
+                psIns.setString(1, userId.toString());
+                psIns.setString(2, userName);
+                psIns.setString(3, "dummy_pass"); // ダミーパスワード
+                psIns.setString(4, securityCodeHash);
+                psIns.setInt(5, initialBalance);
+                psIns.setInt(6, initialPoint);
+                psIns.setString(7, encryptedPrivateKeyStr);
+                psIns.setString(8, publicKeyStr);
+                
+                psIns.executeUpdate();
             }
 
             out.println("<h2>セットアップ完了！</h2>");
@@ -113,16 +110,15 @@ public class PaymentSetup extends HttpServlet {
             out.println("<li>Security Code: <b>" + securityCodeRaw + "</b></li>");
             out.println("</ul>");
             
-            // 決済画面へのリンク（注文IDはSQLで入れたものと合わせる）
+            // 決済画面へのリンク
             out.println("<hr>");
-            out.println("<a href='" + request.getContextPath() + "/UserPayment?orderId=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' style='font-size:20px; color:blue;'>>> 決済画面へ移動する (自動ログインは未実装のためID設定が必要)</a>");
+            out.println("<a href='" + request.getContextPath() + "/UserPayment?orderId=a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' style='font-size:20px; color:blue;'>>> 決済画面へ移動する</a>");
             
-            // セッションに強制ログインさせる（テスト用）
+            // テスト用にセッションへ強制ログイン
             entity.User user = new entity.User();
             user.setUserId(userId);
             user.setBalance(initialBalance);
             user.setPoint(initialPoint);
-            // その他のフィールドも必要に応じてセット
             request.getSession().setAttribute("user", user);
             out.println("<p>※テスト用にセッションへログイン情報を強制セットしました。</p>");
             
@@ -131,7 +127,12 @@ public class PaymentSetup extends HttpServlet {
         } catch (Exception e) {
             e.printStackTrace(out);
         } finally {
-            closer.closeConnections(conns);
+            // ★修正点: closer.closeConnection(con) (単数形) を使用
+            try {
+                if (closer != null) closer.closeConnection(con);
+            } catch (Exception e) {
+                // closeエラーは無視
+            }
         }
     }
 }

@@ -1,101 +1,101 @@
 package dao;
 
 import java.sql.*;
-import java.util.*;
-
+import java.util.UUID;
 import entity.User;
 import system.PaymentSystem;
 
 public class UserDao {
 
+    private final DataSourceHolder dbHolder;
+    private final ConnectionCloser connectionCloser;
+
+    public UserDao() {
+        this.dbHolder = new DataSourceHolder();
+        this.connectionCloser = new ConnectionCloser();
+    }
+
     /**
-     * 【追加】IDからユーザー情報を取得する（画面表示用）
-     * サーブレットの doGet で使用します。
+     * IDからユーザー情報を取得
      */
     public User findById(UUID userId) throws Exception {
-        DataSourceHolder dbHolder = new DataSourceHolder();
-        
-        // 参照用なので Node1 だけ見ればOK
-        try (Connection con = dbHolder.getNode1Connection()) {
+        Connection con = null;
+        try {
+            con = dbHolder.getConnection();
             String sql = "SELECT * FROM users WHERE user_id = ?";
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, userId.toString());
             ResultSet rs = ps.executeQuery();
-            
+
             if (rs.next()) {
                 User user = new User();
                 user.setUserId(UUID.fromString(rs.getString("user_id")));
                 user.setUserName(rs.getString("user_name"));
                 user.setBalance(rs.getInt("balance"));
                 user.setPoint(rs.getInt("point"));
-                // セキュリティコードのハッシュ等は表示不要なのでセットしなくてOK
+                // 必要なフィールドをセット
+                user.setSecurityCode(rs.getString("security_code")); // チェック用
+                user.setLockout(rs.getBoolean("is_lockout"));
                 return user;
             }
             return null;
+        } finally {
+            connectionCloser.closeConnection(con);
         }
     }
 
-    // 決済処理（ここがセキュリティの要）
+    /**
+     * 決済処理（シングルノード・ブロックチェーンロジック維持版）
+     */
     public int userPayment(UUID userId, UUID orderId, int amount, String inputSecurityCode) throws DaoException {
-        DataSourceHolder dbHolder = new DataSourceHolder(); // 既存の接続管理クラス
-        ConnectionCloser closer = new ConnectionCloser();   // 既存のクローズ管理クラス
-        List<Connection> conns = null;
+        Connection con = null;
 
         try {
-            // 1. 全ノードに接続
-            conns = dbHolder.getAllConnections();
-            if (conns == null || conns.isEmpty()) throw new DaoException("DB接続エラー");
+            con = dbHolder.getConnection();
+            con.setAutoCommit(false); // トランザクション開始
 
-            for (Connection c : conns) c.setAutoCommit(false);
-
-            // ---------------------------------------------------------
-            // 2. 【横の監視】多数決で信頼できるノードを決める
-            // ---------------------------------------------------------
-            Connection trustedConn = getConsensusConnection(conns);
-            
-            // 信頼できるノードからユーザー情報を取得（ロック）
+            // 1. ユーザー情報の取得とロック (FOR UPDATE)
             String sqlUser = "SELECT * FROM users WHERE user_id = ? FOR UPDATE";
-            PreparedStatement psUser = trustedConn.prepareStatement(sqlUser);
+            PreparedStatement psUser = con.prepareStatement(sqlUser);
             psUser.setString(1, userId.toString());
             ResultSet rsUser = psUser.executeQuery();
 
-            if (!rsUser.next()) throw new DaoException("ユーザー不在");
-            if (rsUser.getBoolean("is_lockout")) throw new DaoException("アカウントロック中");
+            if (!rsUser.next()) throw new DaoException("ユーザーが見つかりません");
+            if (rsUser.getBoolean("is_lockout")) throw new DaoException("アカウントがロックされています");
 
-            // 3. 入力チェック（セキュリティコード）
+            // 2. セキュリティコードチェック
             String storedHash = rsUser.getString("security_code");
             String inputHash = PaymentSystem.calculateHash(inputSecurityCode);
-            if (!inputHash.equals(storedHash)) throw new DaoException("認証失敗: コードが違います");
+            if (!inputHash.equals(storedHash)) {
+                // ここでログイン試行回数を増やす処理を入れても良い
+                throw new DaoException("認証失敗: セキュリティコードが違います");
+            }
 
+            // 3. 残高チェック
             int currentBalance = rsUser.getInt("balance");
-            if (currentBalance < amount) throw new DaoException("残高不足");
+            if (currentBalance < amount) throw new DaoException("残高不足です");
 
-            // ---------------------------------------------------------
-            // 4. 【入口の監視】直前のブロックが改ざんされていないかチェック
-            // ---------------------------------------------------------
-            Statement stmt = trustedConn.createStatement();
+            // 4. Ledger(台帳)の整合性チェック
+            Statement stmt = con.createStatement();
             ResultSet rsLedger = stmt.executeQuery("SELECT * FROM ledger ORDER BY height DESC LIMIT 1");
             
             String prevHash = "GENESIS"; // 初期値
             if (rsLedger.next()) {
                 prevHash = rsLedger.getString("curr_hash");
-                int height = rsLedger.getInt("height"); // ★追加
+                int height = rsLedger.getInt("height");
 
-                // ★追加: 最初のブロック(Genesis Block)の場合は計算チェックをスキップする
-                // これがないと "GENESIS_HASH" と計算結果が合わずにエラーになる
+                // Genesisブロック以外ならハッシュ改ざんチェックを行う
                 if (height > 1) {
-                    
                     String senderId = rsLedger.getString("sender_id");
                     int prevAmt = rsLedger.getInt("amount");
                     String prevSig = rsLedger.getString("signature");
                     String prevPrevHash = rsLedger.getString("prev_hash");
                     
-                    // 再計算チェック
                     String dataToVerify = senderId + prevAmt + prevPrevHash + prevSig;
                     String reCalcHash = PaymentSystem.calculateHash(dataToVerify);
                     
                     if (!reCalcHash.equals(prevHash)) {
-                        throw new DaoException("【緊急】ブロックチェーンの不整合を検知しました。取引を停止します。");
+                        throw new DaoException("【致命的エラー】ブロックチェーンデータの不整合（改ざん）を検知しました。");
                     }
                 }
             }
@@ -105,173 +105,133 @@ public class UserDao {
             String encPrivKey = rsUser.getString("encrypted_private_key");
             var privKey = PaymentSystem.decryptPrivateKey(encPrivKey);
             
-            // 署名生成 (データ: ユーザーID + 注文ID + 金額)
+            // 署名生成
             String signPayload = userId.toString() + orderId.toString() + amount;
             String signature = PaymentSystem.signData(signPayload, privKey);
 
-            // ブロックハッシュ生成 (データ + 直前のハッシュ + 署名)
+            // ブロックハッシュ生成
             String blockData = userId.toString() + amount + prevHash + signature;
             String currHash = PaymentSystem.calculateHash(blockData);
 
-            // 6. 全ノードへ書き込み
+            // 6. DB更新実行
+            
+            // Ledgerへ記録
             String sqlLedger = "INSERT INTO ledger (prev_hash, curr_hash, sender_id, amount, signature) VALUES (?, ?, ?, ?, ?)";
-            String sqlUpdUser = "UPDATE users SET balance = ?, point = point + ? WHERE user_id = ?"; // ポイント加算も追加
-            String sqlUpdOrder = "UPDATE orders SET is_payment_completed = TRUE WHERE order_id = ?"; // ★追加
-            String sqlInsPay = "INSERT INTO payments (order_id, user_id, used_points, earned_points) VALUES (?, ?, 0, ?)";
+            PreparedStatement psL = con.prepareStatement(sqlLedger);
+            psL.setString(1, prevHash);
+            psL.setString(2, currHash);
+            psL.setString(3, userId.toString());
+            psL.setInt(4, amount);
+            psL.setString(5, signature);
+            psL.executeUpdate();
 
-            // ポイント計算 (1%)
+            // ユーザー残高・ポイント更新
             int earnedPoints = (int)(amount * 0.01);
+            String sqlUpdUser = "UPDATE users SET balance = ?, point = point + ? WHERE user_id = ?";
+            PreparedStatement psU = con.prepareStatement(sqlUpdUser);
+            psU.setInt(1, newBalance);
+            psU.setInt(2, earnedPoints);
+            psU.setString(3, userId.toString());
+            psU.executeUpdate();
 
-            for (Connection c : conns) {
-                // 1. Ledger Insert
-                PreparedStatement psL = c.prepareStatement(sqlLedger);
-                psL.setString(1, prevHash);
-                psL.setString(2, currHash);
-                psL.setString(3, userId.toString());
-                psL.setInt(4, amount);
-                psL.setString(5, signature);
-                psL.executeUpdate();
+            // 注文ステータス更新
+            String sqlUpdOrder = "UPDATE orders SET is_payment_completed = TRUE WHERE order_id = ?";
+            PreparedStatement psO = con.prepareStatement(sqlUpdOrder);
+            psO.setString(1, orderId.toString());
+            psO.executeUpdate();
 
-                // 2. User Update (Balance & Point)
-                PreparedStatement psU = c.prepareStatement(sqlUpdUser);
-                psU.setInt(1, newBalance);
-                psU.setInt(2, earnedPoints);
-                psU.setString(3, userId.toString());
-                psU.executeUpdate();
+            // 決済履歴登録
+            String sqlInsPay = "INSERT INTO payments (order_id, user_id, used_points, earned_points) VALUES (?, ?, 0, ?)";
+            PreparedStatement psP = con.prepareStatement(sqlInsPay);
+            psP.setString(1, orderId.toString());
+            psP.setString(2, userId.toString());
+            psP.setInt(3, earnedPoints);
+            psP.executeUpdate();
 
-                // 3. Order Update (Status) ★これがないと店舗側で支払い済みにならない
-                PreparedStatement psO = c.prepareStatement(sqlUpdOrder);
-                psO.setString(1, orderId.toString());
-                psO.executeUpdate();
-
-                // 4. Payment History Insert ★レシート代わり
-                PreparedStatement psP = c.prepareStatement(sqlInsPay);
-                psP.setString(1, orderId.toString());
-                psP.setString(2, userId.toString());
-                psP.setInt(3, earnedPoints);
-                psP.executeUpdate();
-            }
-
-            for (Connection c : conns) c.commit();
+            // 7. コミット
+            con.commit();
             return newBalance;
 
         } catch (Exception e) {
-            if (conns != null) for (Connection c : conns) try { c.rollback(); } catch (Exception ex) {}
+            if (con != null) {
+                try { con.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
             e.printStackTrace();
-            throw new DaoException("決済エラー: " + e.getMessage());
+            throw new DaoException("決済処理中にエラーが発生しました: " + e.getMessage());
         } finally {
-            closer.closeConnections(conns);
+            connectionCloser.closeConnection(con);
         }
     }
 
     /**
-     * チャージ処理（3拠点分散書き込み・改ざん防止）
+     * チャージ処理（シングルノード版）
      */
     public int userCharge(UUID userId, int amount) throws DaoException {
-        DataSourceHolder dbHolder = new DataSourceHolder();
-        ConnectionCloser closer = new ConnectionCloser();
-        List<Connection> conns = null;
+        Connection con = null;
 
         try {
-            // 1. 全ノード接続
-            conns = dbHolder.getAllConnections();
-            if (conns == null || conns.isEmpty()) throw new DaoException("DB接続エラー");
-            for (Connection c : conns) c.setAutoCommit(false);
+            con = dbHolder.getConnection();
+            con.setAutoCommit(false);
 
-            // 2. 多数決で信頼できるノードから情報を取得
-            Connection trustedConn = getConsensusConnection(conns);
-            
+            // 1. ユーザーロック
             String sqlUser = "SELECT * FROM users WHERE user_id = ? FOR UPDATE";
-            PreparedStatement psUser = trustedConn.prepareStatement(sqlUser);
+            PreparedStatement psUser = con.prepareStatement(sqlUser);
             psUser.setString(1, userId.toString());
             ResultSet rsUser = psUser.executeQuery();
 
-            if (!rsUser.next()) throw new DaoException("ユーザー不在");
+            if (!rsUser.next()) throw new DaoException("ユーザーが見つかりません");
             int currentBalance = rsUser.getInt("balance");
 
-            // 3. 直前のブロック改ざんチェック
-            Statement stmt = trustedConn.createStatement();
+            // 2. Ledgerチェック
+            Statement stmt = con.createStatement();
             ResultSet rsLedger = stmt.executeQuery("SELECT * FROM ledger ORDER BY height DESC LIMIT 1");
             
             String prevHash = "GENESIS";
             if (rsLedger.next()) {
                 prevHash = rsLedger.getString("curr_hash");
-                int height = rsLedger.getInt("height");
-                if (height > 1) {
-                    // (ここでのハッシュ検証ロジックはuserPaymentと同じため省略可能だが、入れるのがベスト)
-                }
+                // 必要であればここで改ざんチェックロジックを入れる（paymentと同じ）
             }
 
-            // 4. チャージ実行データの作成
-            int newBalance = currentBalance + amount; // ★ここがプラスになる
+            // 3. データ作成
+            int newBalance = currentBalance + amount;
             
-            // 署名などの生成
             String encPrivKey = rsUser.getString("encrypted_private_key");
             var privKey = PaymentSystem.decryptPrivateKey(encPrivKey);
             
-            // チャージ用の署名ペイロード (CHARGEという文字を入れて決済と区別)
+            // チャージ用署名
             String signPayload = userId.toString() + "CHARGE" + amount;
             String signature = PaymentSystem.signData(signPayload, privKey);
 
-            // ブロックハッシュ
             String blockData = userId.toString() + amount + prevHash + signature;
             String currHash = PaymentSystem.calculateHash(blockData);
 
-            // 5. 全ノードへ書き込み
+            // 4. DB更新
+            // Ledger
             String sqlLedger = "INSERT INTO ledger (prev_hash, curr_hash, sender_id, amount, signature) VALUES (?, ?, ?, ?, ?)";
+            PreparedStatement psL = con.prepareStatement(sqlLedger);
+            psL.setString(1, prevHash);
+            psL.setString(2, currHash);
+            psL.setString(3, userId.toString());
+            psL.setInt(4, amount);
+            psL.setString(5, signature);
+            psL.executeUpdate();
+
+            // User Balance
             String sqlUpdUser = "UPDATE users SET balance = ? WHERE user_id = ?";
+            PreparedStatement psU = con.prepareStatement(sqlUpdUser);
+            psU.setInt(1, newBalance);
+            psU.setString(2, userId.toString());
+            psU.executeUpdate();
 
-            for (Connection c : conns) {
-                // Ledger
-                PreparedStatement psL = c.prepareStatement(sqlLedger);
-                psL.setString(1, prevHash);
-                psL.setString(2, currHash);
-                psL.setString(3, userId.toString());
-                psL.setInt(4, amount); // チャージ額を記録
-                psL.setString(5, signature);
-                psL.executeUpdate();
-
-                // User Balance Update
-                PreparedStatement psU = c.prepareStatement(sqlUpdUser);
-                psU.setInt(1, newBalance);
-                psU.setString(2, userId.toString());
-                psU.executeUpdate();
-            }
-
-            for (Connection c : conns) c.commit();
+            con.commit();
             return newBalance;
 
         } catch (Exception e) {
-            if (conns != null) for (Connection c : conns) try { c.rollback(); } catch (Exception ex) {}
+            if (con != null) try { con.rollback(); } catch (SQLException ex) {}
             e.printStackTrace();
             throw new DaoException("チャージ処理に失敗しました: " + e.getMessage());
         } finally {
-            closer.closeConnections(conns);
+            connectionCloser.closeConnection(con);
         }
-    }
-
-    // 多数決ロジック（ヘルパーメソッド）
-    private Connection getConsensusConnection(List<Connection> conns) throws DaoException {
-        Map<String, Integer> votes = new HashMap<>();
-        Map<String, Connection> connMap = new HashMap<>();
-
-        for (Connection c : conns) {
-            try {
-                Statement s = c.createStatement();
-                ResultSet rs = s.executeQuery("SELECT curr_hash FROM ledger ORDER BY height DESC LIMIT 1");
-                String h = rs.next() ? rs.getString("curr_hash") : "GENESIS";
-                votes.put(h, votes.getOrDefault(h, 0) + 1);
-                connMap.putIfAbsent(h, c);
-            } catch (SQLException e) {}
-        }
-
-        // 過半数チェック
-        int quorum = conns.size() / 2 + 1;
-        for (Map.Entry<String, Integer> entry : votes.entrySet()) {
-            if (entry.getValue() >= quorum) {
-                return connMap.get(entry.getKey());
-            }
-        }
-        throw new DaoException("分散合意エラー: ノード間でデータが食い違っています。");
     }
 }

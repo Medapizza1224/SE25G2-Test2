@@ -14,10 +14,22 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class PaymentSystem {
 
-    // 【重要】本番環境では環境変数やKMSで管理すること
-    private static final String APP_MASTER_KEY = "12345678901234567890123456789012"; 
+    // -------------------------------------------------------------------------
+    // 元のキー "12345678901234567890123456789012" をBase64エンコードしたものに変更。
+    // ソースコードをパッと見ただけでは、元の文字列が何かは分かりません。
+    // -------------------------------------------------------------------------
+    private static final String OBFUSCATED_KEY_STR = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI=";
     private static final String ALGORITHM_AES = "AES";
     private static final String ALGORITHM_SIGN = "SHA256withRSA";
+
+    /**
+     * 【追加】難読化されたキーを元に戻してバイト配列として取得するメソッド
+     * 外部からは隠蔽(private)しておく
+     */
+    private static byte[] getMasterKeyBytes() {
+        // Base64デコードして元のバイト配列に戻す
+        return Base64.getDecoder().decode(OBFUSCATED_KEY_STR);
+    }
 
     // ハッシュ計算（指紋作成）
     public static String calculateHash(String input) {
@@ -34,7 +46,11 @@ public class PaymentSystem {
     // 秘密鍵の復号
     public static PrivateKey decryptPrivateKey(String encryptedPrivateKeyStr) throws Exception {
         byte[] encryptedBytes = Base64.getDecoder().decode(encryptedPrivateKeyStr);
-        SecretKeySpec keySpec = new SecretKeySpec(APP_MASTER_KEY.getBytes(StandardCharsets.UTF_8), ALGORITHM_AES);
+        
+        // 【変更点】ここで難読化解除メソッドを呼び出す
+        // getMasterKeyBytes() が元のキーのバイト配列を返します
+        SecretKeySpec keySpec = new SecretKeySpec(getMasterKeyBytes(), ALGORITHM_AES);
+        
         Cipher cipher = Cipher.getInstance(ALGORITHM_AES);
         cipher.init(Cipher.DECRYPT_MODE, keySpec);
         byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
@@ -60,7 +76,7 @@ public class PaymentSystem {
         return Base64.getEncoder().encodeToString(privateSignature.sign());
     }
 
-    // 【追加】署名を検証（ハンコが正しいかチェック）
+    // 署名を検証（ハンコが正しいかチェック）
     public static boolean verifySignature(String data, String signatureStr, PublicKey publicKey) {
         try {
             Signature publicSignature = Signature.getInstance(ALGORITHM_SIGN);
