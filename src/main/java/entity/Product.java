@@ -15,6 +15,9 @@ public class Product {
     private String salesStatus;
     private Timestamp updateAt;
 
+    // デフォルトコンストラクタ
+    public Product() {}
+
     // コンストラクタ
     public Product (String productId, String image, String productName, String category, int price, String salesStatus, Timestamp updateAt) throws Failure {
         setProductId(productId);

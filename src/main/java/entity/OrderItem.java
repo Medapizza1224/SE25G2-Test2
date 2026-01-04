@@ -11,13 +11,21 @@ public class OrderItem {
     private UUID orderItemId;
     private UUID orderId;
     private String productId;
+    
+    // ★追加: 画面表示用（DBのorder_itemsテーブルにはないが、JOIN結果を入れるため）
+    private String productName; 
+
     private int quantity;
     private int price;
     private Timestamp addOrderAt;
     private Timestamp orderCompletedAt;
     private String orderStatus;
 
-    // コンストラクタ
+    // ★追加: 引数なしコンストラクタ (DAOで使用するため必須)
+    public OrderItem() {
+    }
+
+    // 全項目コンストラクタ
     public OrderItem(UUID orderItemId, UUID orderId, String productId, int quantity, int price, Timestamp addOrderAt, Timestamp orderCompletedAt, String orderStatus) throws Failure {
         setOrderItemId(orderItemId);
         setOrderId(orderId);
@@ -28,6 +36,8 @@ public class OrderItem {
         setOrderCompletedAt(orderCompletedAt);
         setOrderStatus(orderStatus);
     }
+
+    // --- Getter / Setter ---
 
     // 注文項目ID
     public UUID getOrderItemId() {
@@ -78,6 +88,15 @@ public class OrderItem {
         if (productId.length() > 32) {
             throw new Failure("商品IDは32文字以内で入力してください。");
         }
+    }
+
+    // ★追加: 商品名 (表示用なのでバリデーションは任意ですが、Setterは用意)
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
     // 個数 (1〜10個)

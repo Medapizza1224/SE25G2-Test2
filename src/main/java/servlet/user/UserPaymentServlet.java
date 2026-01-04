@@ -40,7 +40,7 @@ public class UserPaymentServlet extends HttpServlet {
         String orderIdStr = request.getParameter("orderId");
         if (orderIdStr == null || orderIdStr.isEmpty()) {
             // 注文IDがない場合はホームへ戻す等のエラー処理
-            response.sendRedirect(request.getContextPath() + "/user_home");
+            response.sendRedirect(request.getContextPath() + "/PaymentSetup");
             return;
         }
 

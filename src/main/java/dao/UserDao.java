@@ -1,9 +1,13 @@
 package dao;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+
+import dto.UserViewDTO;
 import entity.User;
-import system.PaymentSystem;
+import servlet.system.PaymentSystem;
 
 public class UserDao {
 
@@ -230,6 +234,82 @@ public class UserDao {
             if (con != null) try { con.rollback(); } catch (SQLException ex) {}
             e.printStackTrace();
             throw new DaoException("チャージ処理に失敗しました: " + e.getMessage());
+        } finally {
+            connectionCloser.closeConnection(con);
+        }
+    }
+
+    public List<UserViewDTO> findAllWithStatus() throws DaoException {
+        List<UserViewDTO> list = new ArrayList<>();
+        Connection con = null;
+
+        try {
+            con = dbHolder.getConnection();
+
+            String sql = "SELECT u.*, "
+                       + "(SELECT COUNT(*) FROM payments p WHERE p.user_id = u.user_id) > 0 AS is_paid "
+                       + "FROM users u "
+                       + "ORDER BY u.user_name ASC";
+            
+            PreparedStatement ps = con.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                User user = new User();
+                try {
+                    // ★ここが重要: 提示されたUserクラスに合わせて値をセット
+                    // UUID.fromString で文字列をUUID型に変換してセット
+                    user.setUserId(UUID.fromString(rs.getString("user_id")));
+                    user.setUserName(rs.getString("user_name"));
+                    user.setBalance(rs.getInt("balance"));
+                    user.setPoint(rs.getInt("point"));
+                    user.setLoginAttemptCount(rs.getInt("login_attempt_count"));
+                    user.setLockout(rs.getBoolean("is_lockout"));
+                    
+                    // パスワードやセキュリティコードが必要ならセット（一覧表示だけなら不要な場合もあります）
+                    // user.setUserPassword(rs.getString("password")); 
+                    // user.setSecurityCode(rs.getString("security_code"));
+
+                } catch (Exception e) {
+                    // Failure例外やUUID形式エラー等の場合
+                    e.printStackTrace();
+                    // データの不整合があるレコードはスキップするか、エラーとして扱う
+                    continue; 
+                }
+
+                boolean isPaid = rs.getBoolean("is_paid");
+                
+                // 元のUserViewDTO (randomIdフィールド不要版) を使用
+                list.add(new UserViewDTO(user, isPaid));
+            }
+        } catch (Exception e) {
+            throw new DaoException("一覧取得エラー", e);
+        } finally {
+            connectionCloser.closeConnection(con);
+        }
+        return list;
+    }
+    
+    /**
+     * ★追加: 管理者画面用
+     * 指定されたユーザーのロックアウトを解除し、試行回数をリセットする
+     */
+    public void unlockUser(UUID userId) throws DaoException {
+        Connection con = null;
+        try {
+            con = dbHolder.getConnection();
+            con.setAutoCommit(false); // トランザクション開始
+
+            String sql = "UPDATE users SET is_lockout = FALSE, login_attempt_count = 0 WHERE user_id = ?";
+            try (PreparedStatement ps = con.prepareStatement(sql)) {
+                ps.setString(1, userId.toString());
+                ps.executeUpdate();
+            }
+
+            con.commit();
+        } catch (Exception e) {
+            if (con != null) try { con.rollback(); } catch (SQLException ex) {}
+            throw new DaoException("ロック解除エラー", e);
         } finally {
             connectionCloser.closeConnection(con);
         }

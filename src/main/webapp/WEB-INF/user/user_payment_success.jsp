@@ -182,7 +182,7 @@
                 </div>
             </c:if>
 
-            <a href="${pageContext.request.contextPath}/user_home" class="home-button">ホームに戻る</a>
+            <a href="${pageContext.request.contextPath}/PaymentSetup" class="home-button">ホームに戻る</a>
         </div>
     </div>
 </body>
