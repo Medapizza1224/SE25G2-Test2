@@ -14,6 +14,13 @@ public class AdminProductListServlet extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         
+        // セッションチェック
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("adminUser") == null) {
+            response.sendRedirect(request.getContextPath() + "/AdminLogin");
+            return;
+        }
+
         // コントローラ実行
         AdminProductListControl control = new AdminProductListControl();
         AdminProductListResult result = control.execute();

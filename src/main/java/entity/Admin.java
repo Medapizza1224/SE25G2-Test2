@@ -9,6 +9,9 @@ public class Admin {
     private String adminName;
     private String adminPassword;
 
+    public Admin() {
+    }
+
     // コンストラクタ ＝ 初期値
     public Admin (String adminName, String adminPassword) throws Failure {
         setAdminName(adminName);

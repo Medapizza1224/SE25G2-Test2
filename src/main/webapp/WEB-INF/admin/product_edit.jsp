@@ -59,6 +59,7 @@
         <a href="AdminAnalysis" class="sidebar-item"><span class="icon">📊</span> 分析</a>
         <a href="AdminUserView" class="sidebar-item"><span class="icon">👤</span> ユーザー</a>
         <a href="AdminProductList" class="sidebar-item active"><span class="icon">🍽</span> 商品</a>
+        <a href="admin-setup" class="sidebar-item"><span class="icon">あ</span> 設定</a>
         <a href="AdminLogin" class="sidebar-item" style="margin-top:auto;"><span class="icon">🚪</span> ログアウト</a>
     </div>
 

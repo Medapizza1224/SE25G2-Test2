@@ -10,6 +10,14 @@ import control.admin.AdminAnalysisResult;
 @WebServlet("/AdminAnalysis")
 public class AdminAnalysisServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        
+        // セッションチェック
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("adminUser") == null) {
+            response.sendRedirect(request.getContextPath() + "/AdminLogin");
+            return;
+        }
+        
         String type = request.getParameter("type");
         
         AdminAnalysisControl control = new AdminAnalysisControl();
