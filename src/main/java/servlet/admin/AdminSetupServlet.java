@@ -18,26 +18,14 @@ public class AdminSetupServlet extends HttpServlet {
 
     // 表示
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        
-        // セッションチェック
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("adminUser") == null) {
-            response.sendRedirect(request.getContextPath() + "/AdminLogin");
-            return;
-        }
+
         
         request.getRequestDispatcher("/WEB-INF/admin/admin_setup.jsp").forward(request, response);
     }
 
     // ロゴの更新
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        
-        // セッションチェック
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("adminUser") == null) {
-            response.sendRedirect(request.getContextPath() + "/AdminLogin");
-            return;
-        }
+
         
         request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");

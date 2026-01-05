@@ -13,13 +13,7 @@ public class AdminProductListServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        
-        // セッションチェック
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("adminUser") == null) {
-            response.sendRedirect(request.getContextPath() + "/AdminLogin");
-            return;
-        }
+
 
         // コントローラ実行
         AdminProductListControl control = new AdminProductListControl();
