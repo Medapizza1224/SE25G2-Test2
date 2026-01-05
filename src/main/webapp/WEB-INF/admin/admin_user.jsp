@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>]
 
-<c:if test="${empty sessionScope.adminName}">
+<c:if test="${empty sessionScope.adminNameManagement}">
     <c:redirect url="/AdminLogin" />
 </c:if>
 

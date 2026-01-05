@@ -156,9 +156,9 @@ INSERT INTO order_items (order_item_id, order_id, product_id, quantity, price, a
 
 -- カテゴリ: 肉
 INSERT INTO products (product_id, product_name, image, category, price, sales_status) VALUES 
-('MEAT001', '和牛上カルビ', 'kalbi.jpg', '肉', 1280, '販売中'),
-('MEAT002', '熟成ハラミ', 'harami.jpg', '肉', 980, '販売中'),
-('MEAT003', 'ネギ塩タン', 'tan.jpg', '肉', 1380, '販売中'),
+('MEAT001', '和牛上カルビ', '図１.png', '肉', 1280, '販売中'),
+('MEAT002', '熟成ハラミ', '図１.png', '肉', 980, '販売中'),
+('MEAT003', 'ネギ塩タン', '図１.png', '肉', 1380, '販売中'),
 ('MEAT004', 'ロース', 'roast.jpg', '肉', 880, '販売中'),
 ('MEAT005', '豚トロ', 'tontoro.jpg', '肉', 680, '販売中'),
 ('MEAT006', '黒毛和牛サーロイン', 'sirloin.jpg', '肉', 2480, '販売中'),
@@ -196,7 +196,7 @@ INSERT INTO products (product_id, product_name, image, category, price, sales_st
 
 -- カテゴリ: ドリンク (飲み物)
 INSERT INTO products (product_id, product_name, image, category, price, sales_status) VALUES 
-('DRNK001', '生ビール(中)', 'beer.jpg', 'ドリンク', 550, '販売中'),
+('DRNK001', '生ビール(中)', '図１.png', 'ドリンク', 550, '販売中'),
 ('DRNK002', 'ハイボール', 'highball.jpg', 'ドリンク', 450, '販売中'),
 ('DRNK003', 'レモンサワー', 'sour.jpg', 'ドリンク', 450, '販売中'),
 ('DRNK004', '赤ワイン(グラス)', 'wine_red.jpg', 'ドリンク', 600, '販売中'),

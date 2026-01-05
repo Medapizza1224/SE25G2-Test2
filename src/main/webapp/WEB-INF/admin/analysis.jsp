@@ -1,8 +1,9 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>]
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
-<c:if test="${empty sessionScope.adminName}">
+<c:if test="${empty sessionScope.adminNameManagement}">
     <c:redirect url="/AdminLogin" />
 </c:if>
 <!DOCTYPE html>
@@ -106,7 +107,8 @@
                         </c:choose>
                         
                         <!-- 商品画像 (AnalysisDtoにimageフィールドがあればそれを表示、なければダミー) -->
-                        <img src="${pageContext.request.contextPath}/image/product/beef.jpg" class="food-img" alt="商品画像">
+                        <!-- 変数を item に修正 -->
+                        <img src="${pageContext.request.contextPath}/image/product/${item.image}" class="food-img" alt="商品画像">
                         
                         <div class="food-name">${item.productName}</div>
                         <div class="food-count">注文数: ${item.count}</div>

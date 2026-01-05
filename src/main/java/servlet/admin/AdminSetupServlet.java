@@ -18,14 +18,11 @@ public class AdminSetupServlet extends HttpServlet {
 
     // 表示
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-        
         request.getRequestDispatcher("/WEB-INF/admin/admin_setup.jsp").forward(request, response);
     }
 
     // ロゴの更新
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
         
         request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");

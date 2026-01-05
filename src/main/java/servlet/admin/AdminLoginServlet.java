@@ -34,7 +34,7 @@ public class AdminLoginServlet extends HttpServlet {
 
             // 認証成功：セッションに保存
             HttpSession session = request.getSession();
-            session.setAttribute("adminUser", result.getAdmin());
+            session.setAttribute("adminNameManagement", result.getAdmin());
 
             // キッチン画面（または管理者トップ）へリダイレクト
             response.sendRedirect(request.getContextPath() + "/AdminKitchen");

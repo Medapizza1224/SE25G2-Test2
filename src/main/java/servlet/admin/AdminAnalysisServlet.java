@@ -10,7 +10,6 @@ import control.admin.AdminAnalysisResult;
 @WebServlet("/AdminAnalysis")
 public class AdminAnalysisServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
         
         String type = request.getParameter("type");
         

@@ -64,11 +64,10 @@ public class OrderCountDao {
         List<AnalysisDto> list = new ArrayList<>();
         Connection con = null;
         try {
-            // ★修正: ここでフィールド変数が使えるようになる
             con = dataSourceHolder.getConnection();
             
-            // カラム名は動的だが、Control側で安全な文字列のみ渡す設計とする
-            String sql = "SELECT p.product_name, c." + column + " as cnt " +
+            // ★修正1: SQL文に p.image を追加
+            String sql = "SELECT p.product_name, p.image, c." + column + " as cnt " +
                          "FROM order_counts c " +
                          "JOIN products p ON c.product_id = p.product_id " +
                          "ORDER BY cnt DESC LIMIT 5";
@@ -77,9 +76,11 @@ public class OrderCountDao {
             ResultSet rs = ps.executeQuery();
             
             while(rs.next()){
+                // ★修正2: DTOのコンストラクタに image を渡す
                 list.add(new AnalysisDto(
                     rs.getString("product_name"), 
-                    rs.getInt("cnt")
+                    rs.getInt("cnt"),
+                    rs.getString("image") // ここを追加
                 ));
             }
         } catch(Exception e) {
