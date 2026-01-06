@@ -3,7 +3,7 @@
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
 <c:if test="${empty sessionScope.adminNameManagement}">
-    <c:redirect url="/AdminLogin" />
+    <c:redirect url="/Admin" />
 </c:if>
 
 <!DOCTYPE html>
@@ -58,7 +58,7 @@
         <a href="AdminUserView" class="sidebar-item"><span class="icon">👤</span> ユーザー</a>
         <a href="AdminProductList" class="sidebar-item active"><span class="icon">🍽</span> 商品</a>
         <a href="admin-setup" class="sidebar-item"><span class="icon">あ</span> 設定</a>
-        <a href="AdminLogin" class="sidebar-item" style="margin-top:auto;"><span class="icon">🚪</span> ログアウト</a>
+        <a href="Admin" class="sidebar-item" style="margin-top:auto;"><span class="icon">🚪</span> ログアウト</a>
     </div>
 
     <div class="content">

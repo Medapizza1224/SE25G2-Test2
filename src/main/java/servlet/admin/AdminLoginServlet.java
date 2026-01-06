@@ -12,7 +12,7 @@ import control.admin.AdminLoginControl;
 import control.admin.AdminLoginResult;
 import modelUtil.Failure;
 
-@WebServlet("/AdminLogin")
+@WebServlet("/Admin")
 public class AdminLoginServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 

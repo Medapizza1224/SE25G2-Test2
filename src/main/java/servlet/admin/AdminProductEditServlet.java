@@ -50,7 +50,7 @@ public class AdminProductEditServlet extends HttpServlet {
         // セッションチェック
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("adminUser") == null) {
-            response.sendRedirect(request.getContextPath() + "/AdminLogin");
+            response.sendRedirect(request.getContextPath() + "/Admin");
             return;
         }
         

@@ -4,7 +4,7 @@
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <c:if test="${empty sessionScope.adminNameManagement}">
-    <c:redirect url="/AdminLogin" />
+    <c:redirect url="/Admin" />
 </c:if>
 
 <!DOCTYPE html>

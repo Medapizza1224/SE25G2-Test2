@@ -140,7 +140,7 @@
                 <span class="icon-cow">🐄</span> 焼肉〇〇
             </div>
 
-            <form action="${pageContext.request.contextPath}/AdminLogin" method="post">
+            <form action="${pageContext.request.contextPath}/Admin" method="post">
                 <!-- 管理者名 -->
                 <label for="adminName">管理者名</label>
                 <div class="input-group">
