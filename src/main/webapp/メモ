@@ -27,3 +27,5 @@ docker-compose down
 # 2. データの保存領域(ボリューム)を削除
 # ※これをやらないとrestaurant_dbが作成されません
 docker volume rm se25g2_mysql_data
+
+git pull origin main --rebase

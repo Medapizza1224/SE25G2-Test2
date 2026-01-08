@@ -174,6 +174,11 @@ public class UserDao {
             psP.setInt(3, earnedPoints);
             psP.executeUpdate();
 
+            System.out.println("入力されたコード: " + inputSecurityCode);
+System.out.println("入力のハッシュ値: " + inputHash);
+System.out.println("DB内のハッシュ値: " + storedHash);
+
+
             // 7. コミット
             con.commit();
             return newBalance;

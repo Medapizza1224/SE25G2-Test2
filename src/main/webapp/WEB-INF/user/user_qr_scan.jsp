@@ -170,32 +170,54 @@
                     inversionAttempts: "dontInvert",
                 });
 
-                if (code) {
-                    // QRコードが見つかった場合
-                    const rawData = code.data;
-                    console.log("QR Found: ", rawData);
+                // ... 前略 ...
 
-                    // UUIDっぽい文字列（OrderId）か確認
-                    // ※実際はURLが含まれている場合もあるので、必要に応じてパースしてください
-                    // ここでは「QRコードの中身 = OrderId」として扱います
-                    
-                    if (rawData.length > 10) { // 簡易チェック
-                        isRedirecting = true;
-                        statusMsg.innerText = "読み取り成功！遷移中...";
-                        statusMsg.style.background = "#00aa00";
+            if (code) {
+                const rawData = code.data;
+                console.log("QR Found: ", rawData);
+
+                // ★★★ ここから修正・追加 ★★★
+                
+                // 1. 読み取ったデータから「orderId」だけを抽出する
+                let orderId = rawData;
+                
+                // もしQRコードが "http://.../UserPayment?orderId=xxxxx" というURL形式だった場合
+                try {
+                    // 文字列の中に "orderId=" があるか探す
+                    if (rawData.indexOf("orderId=") !== -1) {
+                        // "orderId=" の後ろの部分を取り出す
+                        orderId = rawData.split("orderId=")[1];
                         
-                        // 枠の色を変える演出
-                        ctx.strokeStyle = "#FF3B58";
-                        ctx.lineWidth = 4;
-                        ctx.strokeRect(code.location.topLeftCorner.x, code.location.topLeftCorner.y, code.width, code.height);
-
-                        // 少し待ってから遷移（演出のため）
-                        setTimeout(() => {
-                            window.location.href = targetUrl + encodeURIComponent(rawData);
-                        }, 500);
-                        return;
+                        // もし後ろに "&" などで他のパラメータが続いていたらカットする
+                        if (orderId.indexOf("&") !== -1) {
+                            orderId = orderId.split("&")[0];
+                        }
                     }
+                } catch (e) {
+                    console.error("ID extraction failed", e);
                 }
+
+                // 2. IDがある程度の長さ（UUIDなら36文字）かチェック
+                if (orderId && orderId.length > 10) { 
+                    isRedirecting = true;
+                    statusMsg.innerText = "読み取り成功！遷移中...";
+                    statusMsg.style.background = "#00aa00";
+                    
+                    ctx.strokeStyle = "#FF3B58";
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(code.location.topLeftCorner.x, code.location.topLeftCorner.y, code.width, code.height);
+
+                    setTimeout(() => {
+                        // ★重要: 現在のコンテキスト（ログイン状態）を維持したまま、IDだけを付与して遷移
+                        // rawData (全URL) ではなく、抽出した orderId を使うのがポイント
+                        window.location.href = targetUrl + encodeURIComponent(orderId);
+                    }, 300);
+                    return;
+                }
+                // ★★★ 修正ここまで ★★★
+            }
+
+            // ... 後略 ...
             }
             requestAnimationFrame(() => tick(video));
         }

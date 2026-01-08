@@ -287,6 +287,6 @@ USE restaurant_db;
 
 -- データ投入（名前をメアド形式、残高50万以下、必須項目のみ）
 INSERT INTO users (user_id, user_name, user_password, security_code, balance, point, login_attempt_count, is_lockout, encrypted_private_key, public_key) VALUES 
-('550e8400-e29b-41d4-a716-446655440001', 'user0001@gmail.com', 'pass1', 'sec1',  50000,  100, 0, FALSE, 'priv1', 'pub1'),
+('550e8400-e29b-41d4-a716-446655440001', 'user0001@gmail.com', 'pass1', '1234',  50000,  100, 0, FALSE, 'priv1', 'pub1'),
 ('660e8400-e29b-41d4-a716-446655440002', 'user0002@gmail.com', 'pass2', 'sec2',   2000,   50, 3, TRUE,  'priv2', 'pub2'),
 ('770e8400-e29b-41d4-a716-446655440003', 'user0003@gmail.com', 'pass3', 'sec3', 500000, 5000, 0, FALSE, 'priv3', 'pub3');
