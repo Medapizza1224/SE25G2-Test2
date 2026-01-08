@@ -48,6 +48,28 @@ public class UserDao {
         }
     }
 
+    // UserDao.java 内に追加
+    public User findByName(String userName) throws Exception {
+        Connection con = null;
+        try {
+            con = dbHolder.getConnection();
+            String sql = "SELECT * FROM users WHERE user_name = ?";
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, userName);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                User user = new User();
+                user.setUserId(UUID.fromString(rs.getString("user_id")));
+                user.setUserName(rs.getString("user_name"));
+                // ... 他のフィールドもセット (passwordチェック等に必要なら)
+                return user;
+            }
+            return null;
+        } finally {
+            connectionCloser.closeConnection(con);
+        }
+    }
+
     /**
      * 決済処理（シングルノード・ブロックチェーンロジック維持版）
      */
