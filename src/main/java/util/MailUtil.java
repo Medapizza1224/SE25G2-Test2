@@ -30,7 +30,7 @@ public class MailUtil {
 
         String content = "以下のリンクをクリックして、登録を完了してください。\n\n"
                        + authUrl + "\n\n"
-                       + "※このリンクは有効期限があります。";
+                       + "※このリンクの有効期限があります。";
         
         message.setText(content);
 

@@ -30,7 +30,7 @@
     <p>現在のロゴ：</p>
     <img src="${pageContext.request.contextPath}/image/logo/logo.svg?t=<%= System.currentTimeMillis() %>" width="100" alt="ロゴ"><br>
 
-    <form action="Setup" method="post" enctype="multipart/form-data">
+    <form action="admin-setup" method="post" enctype="multipart/form-data">
         <p>ファイルを選択（SVGのみ）：</p>
         <input type="hidden" name="action" value="uploadLogo">
         <input type="file" name="logoFile" accept=".svg" required><br><br>

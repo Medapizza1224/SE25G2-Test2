@@ -4,6 +4,8 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.security.KeyPair; // 鍵ペア生成用
+import java.util.Base64;      // 公開鍵エンコード用
 
 import dto.UserViewDTO;
 import entity.User;
@@ -37,8 +39,7 @@ public class UserDao {
                 user.setUserName(rs.getString("user_name"));
                 user.setBalance(rs.getInt("balance"));
                 user.setPoint(rs.getInt("point"));
-                // 必要なフィールドをセット
-                user.setSecurityCode(rs.getString("security_code")); // チェック用
+                user.setSecurityCode(rs.getString("security_code"));
                 user.setLockout(rs.getBoolean("is_lockout"));
                 return user;
             }
@@ -48,8 +49,6 @@ public class UserDao {
         }
     }
 
-    // src/main/java/dao/UserDao.java のクラス内に追加
-
     /**
      * ユーザー名からユーザー情報を検索する（ログイン用）
      */
@@ -57,7 +56,6 @@ public class UserDao {
         Connection con = null;
         try {
             con = dbHolder.getConnection();
-            // ユーザー名で検索
             String sql = "SELECT * FROM users WHERE user_name = ?";
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, userName);
@@ -67,7 +65,6 @@ public class UserDao {
                 User user = new User();
                 user.setUserId(UUID.fromString(rs.getString("user_id")));
                 user.setUserName(rs.getString("user_name"));
-                // パスワード照合のために取得
                 user.setUserPassword(rs.getString("user_password")); 
                 user.setBalance(rs.getInt("balance"));
                 user.setPoint(rs.getInt("point"));
@@ -76,14 +73,15 @@ public class UserDao {
                 user.setLockout(rs.getBoolean("is_lockout"));
                 return user;
             }
-            return null; // 見つからない場合
+            return null;
         } finally {
             connectionCloser.closeConnection(con);
         }
     }
 
-    // UserDao.java の userPayment メソッド
-
+    /**
+     * 決済処理（実ロジック版：署名・ハッシュ計算あり）
+     */
     public int userPayment(UUID userId, UUID orderId, int amount, String inputSecurityCode) throws DaoException {
         Connection con = null;
 
@@ -91,7 +89,7 @@ public class UserDao {
             con = dbHolder.getConnection();
             con.setAutoCommit(false);
 
-            // 1. ユーザー取得
+            // 1. ユーザー取得（排他ロック）
             String sqlUser = "SELECT * FROM users WHERE user_id = ? FOR UPDATE";
             PreparedStatement psUser = con.prepareStatement(sqlUser);
             psUser.setString(1, userId.toString());
@@ -99,19 +97,17 @@ public class UserDao {
 
             if (!rsUser.next()) throw new DaoException("ユーザー不在");
             
-            // 2. ★修正: セキュリティコードを「生データ」で比較
-            String dbCode = rsUser.getString("security_code"); // SQLに入れた "1234"
-            
-            // ハッシュ化処理(PaymentSystem.calculateHash)を削除し、そのまま比較
+            // 2. セキュリティコード検証
+            String dbCode = rsUser.getString("security_code");
             if (!inputSecurityCode.equals(dbCode)) {
-                throw new DaoException("認証失敗: セキュリティコードが違います (DB:" + dbCode + " / 入力:" + inputSecurityCode + ")");
+                throw new DaoException("認証失敗: セキュリティコードが違います");
             }
 
             // 3. 残高チェック
             int currentBalance = rsUser.getInt("balance");
             if (currentBalance < amount) throw new DaoException("残高不足です");
 
-            // 4. Ledgerのハッシュチェーン取得（ここは簡易的に残す）
+            // 4. Ledgerのハッシュチェーン取得
             Statement stmt = con.createStatement();
             ResultSet rsLedger = stmt.executeQuery("SELECT * FROM ledger ORDER BY height DESC LIMIT 1");
             String prevHash = "GENESIS";
@@ -119,13 +115,22 @@ public class UserDao {
                 prevHash = rsLedger.getString("curr_hash");
             }
 
-            // 5. ★修正: 電子署名ロジックを廃止（ダミーを入れる）
-            // 秘密鍵 "priv1" は復号できないため、署名計算自体をやめる
-            String signature = "DUMMY_SIGNATURE"; // ダミー署名
-            String currHash = "DUMMY_HASH_" + System.currentTimeMillis(); // ダミーハッシュ
+            // 5. 電子署名とハッシュ計算（実際の鍵を使用）
+            String encPrivKey = rsUser.getString("encrypted_private_key");
+            
+            // DBの値が不正(ダミー文字列等)だとここで復号エラーになります
+            var privKey = PaymentSystem.decryptPrivateKey(encPrivKey);
+            
+            // 署名対象データ
+            String signPayload = userId.toString() + "PAYMENT" + amount;
+            String signature = PaymentSystem.signData(signPayload, privKey);
+
+            // ブロックハッシュ計算
+            String blockData = userId.toString() + amount + prevHash + signature;
+            String currHash = PaymentSystem.calculateHash(blockData);
 
             // 6. DB更新
-            // LedgerへのINSERT
+            // Ledger
             String sqlLedger = "INSERT INTO ledger (prev_hash, curr_hash, sender_id, amount, signature) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement psL = con.prepareStatement(sqlLedger);
             psL.setString(1, prevHash);
@@ -172,7 +177,7 @@ public class UserDao {
     }
 
     /**
-     * チャージ処理（シングルノード版）
+     * チャージ処理（実ロジック版：署名・ハッシュ計算あり）
      */
     public int userCharge(UUID userId, int amount) throws DaoException {
         Connection con = null;
@@ -197,16 +202,14 @@ public class UserDao {
             String prevHash = "GENESIS";
             if (rsLedger.next()) {
                 prevHash = rsLedger.getString("curr_hash");
-                // 必要であればここで改ざんチェックロジックを入れる（paymentと同じ）
             }
 
-            // 3. データ作成
-            int newBalance = currentBalance + amount;
-            
+            // 3. データ作成（実際の鍵を使用）
             String encPrivKey = rsUser.getString("encrypted_private_key");
+            
+            // DBの値が不正だとここでエラー（Base64デコード失敗など）になります
             var privKey = PaymentSystem.decryptPrivateKey(encPrivKey);
             
-            // チャージ用署名
             String signPayload = userId.toString() + "CHARGE" + amount;
             String signature = PaymentSystem.signData(signPayload, privKey);
 
@@ -227,12 +230,12 @@ public class UserDao {
             // User Balance
             String sqlUpdUser = "UPDATE users SET balance = ? WHERE user_id = ?";
             PreparedStatement psU = con.prepareStatement(sqlUpdUser);
-            psU.setInt(1, newBalance);
+            psU.setInt(1, currentBalance + amount); // 現在残高 + チャージ額
             psU.setString(2, userId.toString());
             psU.executeUpdate();
 
             con.commit();
-            return newBalance;
+            return currentBalance + amount;
 
         } catch (Exception e) {
             if (con != null) try { con.rollback(); } catch (SQLException ex) {}
@@ -261,29 +264,18 @@ public class UserDao {
             while (rs.next()) {
                 User user = new User();
                 try {
-                    // ★ここが重要: 提示されたUserクラスに合わせて値をセット
-                    // UUID.fromString で文字列をUUID型に変換してセット
                     user.setUserId(UUID.fromString(rs.getString("user_id")));
                     user.setUserName(rs.getString("user_name"));
                     user.setBalance(rs.getInt("balance"));
                     user.setPoint(rs.getInt("point"));
                     user.setLoginAttemptCount(rs.getInt("login_attempt_count"));
                     user.setLockout(rs.getBoolean("is_lockout"));
-                    
-                    // パスワードやセキュリティコードが必要ならセット（一覧表示だけなら不要な場合もあります）
-                    // user.setUserPassword(rs.getString("password")); 
-                    // user.setSecurityCode(rs.getString("security_code"));
-
                 } catch (Exception e) {
-                    // Failure例外やUUID形式エラー等の場合
                     e.printStackTrace();
-                    // データの不整合があるレコードはスキップするか、エラーとして扱う
                     continue; 
                 }
 
                 boolean isPaid = rs.getBoolean("is_paid");
-                
-                // 元のUserViewDTO (randomIdフィールド不要版) を使用
                 list.add(new UserViewDTO(user, isPaid));
             }
         } catch (Exception e) {
@@ -294,15 +286,11 @@ public class UserDao {
         return list;
     }
     
-    /**
-     * ★追加: 管理者画面用
-     * 指定されたユーザーのロックアウトを解除し、試行回数をリセットする
-     */
     public void unlockUser(UUID userId) throws DaoException {
         Connection con = null;
         try {
             con = dbHolder.getConnection();
-            con.setAutoCommit(false); // トランザクション開始
+            con.setAutoCommit(false); 
 
             String sql = "UPDATE users SET is_lockout = FALSE, login_attempt_count = 0 WHERE user_id = ?";
             try (PreparedStatement ps = con.prepareStatement(sql)) {
@@ -319,17 +307,25 @@ public class UserDao {
         }
     }
 
-    // UserDao.java
-
-/**
-     * 新規ユーザー登録（暗号化なしバージョン）
+    /**
+     * 新規ユーザー登録（★実ロジック：鍵ペア生成・暗号化）
      */
     public void register(User user) throws Exception {
         Connection con = null;
         try {
             con = dbHolder.getConnection();
-            // 前回の要望通り、ダミーの鍵を入れて生パスワードで保存
-            String sql = "INSERT INTO users (user_id, user_name, user_password, security_code, balance, point, login_attempt_count, is_lockout, encrypted_private_key, public_key) VALUES (?, ?, ?, ?, ?, ?, 0, FALSE, 'DUMMY_PRIV', 'DUMMY_PUB')";
+            
+            // 1. 鍵ペア作成（実ロジック）
+            KeyPair keyPair = PaymentSystem.createKeyPair();
+            
+            // 2. 秘密鍵を暗号化して文字列化（Base64形式になるはず）
+            String encPrivKey = PaymentSystem.encryptPrivateKey(keyPair.getPrivate());
+            
+            // 3. 公開鍵をBase64文字列化
+            String pubKey = Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
+
+            // 4. DBへ保存
+            String sql = "INSERT INTO users (user_id, user_name, user_password, security_code, balance, point, login_attempt_count, is_lockout, encrypted_private_key, public_key) VALUES (?, ?, ?, ?, ?, ?, 0, FALSE, ?, ?)";
             
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, user.getUserId().toString());
@@ -338,6 +334,10 @@ public class UserDao {
             ps.setString(4, user.getSecurityCode());
             ps.setInt(5, user.getBalance());
             ps.setInt(6, user.getPoint());
+            
+            // 正しい鍵データをセット
+            ps.setString(7, encPrivKey);
+            ps.setString(8, pubKey);
             
             ps.executeUpdate();
         } finally {

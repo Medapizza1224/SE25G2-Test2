@@ -284,9 +284,3 @@ INSERT INTO order_items (order_item_id, order_id, product_id, quantity, price, a
 ('12121212-1212-1212-1212-000000000005', '12121212-1212-1212-1212-121212121212', 'MEAT003', 2, 1380, DATE_SUB(NOW(), INTERVAL 5 MINUTE), '調理中'); -- ネギ塩タン
 
 USE restaurant_db;
-
--- データ投入（名前をメアド形式、残高50万以下、必須項目のみ）
-INSERT INTO users (user_id, user_name, user_password, security_code, balance, point, login_attempt_count, is_lockout, encrypted_private_key, public_key) VALUES 
-('550e8400-e29b-41d4-a716-446655440001', 'user0001@gmail.com', 'pass1', '1234',  50000,  100, 0, FALSE, 'priv1', 'pub1'),
-('660e8400-e29b-41d4-a716-446655440002', 'user0002@gmail.com', 'pass2', 'sec2',   2000,   50, 3, TRUE,  'priv2', 'pub2'),
-('770e8400-e29b-41d4-a716-446655440003', 'user0003@gmail.com', 'pass3', 'sec3', 500000, 5000, 0, FALSE, 'priv3', 'pub3');

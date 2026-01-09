@@ -45,7 +45,7 @@
             width: 70%;
             max-width: 300px;
             aspect-ratio: 1 / 1;
-            border: 4px solid rgba(0, 255, 0, 0.6);
+            border: 4px solid #FF6900;
             border-radius: 20px;
             box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); /* 枠外を暗くする */
             display: flex;
@@ -56,9 +56,9 @@
         .scan-line {
             width: 90%;
             height: 2px;
-            background: #00ff00;
+            background: #FF6900;
             animation: scanAnim 2s infinite linear;
-            box-shadow: 0 0 4px #00ff00;
+            box-shadow: 0 0 4px #FF6900;
         }
 
         @keyframes scanAnim {
@@ -119,7 +119,7 @@
         <!-- 非表示のデバッグ用フォーム（どうしてもカメラが使えない環境用） -->
         <div id="debug-input">
             <form action="${pageContext.request.contextPath}/UserPayment" method="get">
-                 <input type="text" name="orderId" placeholder="Order ID直接入力">
+                 <input type="text" name="orderId" placeholder="OrderID">
                  <button>Go</button>
             </form>
         </div>

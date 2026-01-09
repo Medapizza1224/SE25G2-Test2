@@ -24,13 +24,6 @@ public class AdminKitchenServlet extends HttpServlet {
 
     // 提供完了処理
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        
-        // セッションチェック
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("adminUser") == null) {
-            response.sendRedirect(request.getContextPath() + "/Admin");
-            return;
-        }
 
         String itemId = request.getParameter("orderItemId");
         
