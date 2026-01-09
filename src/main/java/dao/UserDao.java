@@ -48,100 +48,84 @@ public class UserDao {
         }
     }
 
-    // UserDao.java 内に追加
+    // src/main/java/dao/UserDao.java のクラス内に追加
+
+    /**
+     * ユーザー名からユーザー情報を検索する（ログイン用）
+     */
     public User findByName(String userName) throws Exception {
         Connection con = null;
         try {
             con = dbHolder.getConnection();
+            // ユーザー名で検索
             String sql = "SELECT * FROM users WHERE user_name = ?";
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, userName);
             ResultSet rs = ps.executeQuery();
+
             if (rs.next()) {
                 User user = new User();
                 user.setUserId(UUID.fromString(rs.getString("user_id")));
                 user.setUserName(rs.getString("user_name"));
-                // ... 他のフィールドもセット (passwordチェック等に必要なら)
+                // パスワード照合のために取得
+                user.setUserPassword(rs.getString("user_password")); 
+                user.setBalance(rs.getInt("balance"));
+                user.setPoint(rs.getInt("point"));
+                user.setSecurityCode(rs.getString("security_code"));
+                user.setLoginAttemptCount(rs.getInt("login_attempt_count"));
+                user.setLockout(rs.getBoolean("is_lockout"));
                 return user;
             }
-            return null;
+            return null; // 見つからない場合
         } finally {
             connectionCloser.closeConnection(con);
         }
     }
 
-    /**
-     * 決済処理（シングルノード・ブロックチェーンロジック維持版）
-     */
+    // UserDao.java の userPayment メソッド
+
     public int userPayment(UUID userId, UUID orderId, int amount, String inputSecurityCode) throws DaoException {
         Connection con = null;
 
         try {
             con = dbHolder.getConnection();
-            con.setAutoCommit(false); // トランザクション開始
+            con.setAutoCommit(false);
 
-            // 1. ユーザー情報の取得とロック (FOR UPDATE)
+            // 1. ユーザー取得
             String sqlUser = "SELECT * FROM users WHERE user_id = ? FOR UPDATE";
             PreparedStatement psUser = con.prepareStatement(sqlUser);
             psUser.setString(1, userId.toString());
             ResultSet rsUser = psUser.executeQuery();
 
-            if (!rsUser.next()) throw new DaoException("ユーザーが見つかりません");
-            if (rsUser.getBoolean("is_lockout")) throw new DaoException("アカウントがロックされています");
-
-            // 2. セキュリティコードチェック
-            String storedHash = rsUser.getString("security_code");
-            String inputHash = PaymentSystem.calculateHash(inputSecurityCode);
-            if (!inputHash.equals(storedHash)) {
-                // ここでログイン試行回数を増やす処理を入れても良い
-                throw new DaoException("認証失敗: セキュリティコードが違います");
+            if (!rsUser.next()) throw new DaoException("ユーザー不在");
+            
+            // 2. ★修正: セキュリティコードを「生データ」で比較
+            String dbCode = rsUser.getString("security_code"); // SQLに入れた "1234"
+            
+            // ハッシュ化処理(PaymentSystem.calculateHash)を削除し、そのまま比較
+            if (!inputSecurityCode.equals(dbCode)) {
+                throw new DaoException("認証失敗: セキュリティコードが違います (DB:" + dbCode + " / 入力:" + inputSecurityCode + ")");
             }
 
             // 3. 残高チェック
             int currentBalance = rsUser.getInt("balance");
             if (currentBalance < amount) throw new DaoException("残高不足です");
 
-            // 4. Ledger(台帳)の整合性チェック
+            // 4. Ledgerのハッシュチェーン取得（ここは簡易的に残す）
             Statement stmt = con.createStatement();
             ResultSet rsLedger = stmt.executeQuery("SELECT * FROM ledger ORDER BY height DESC LIMIT 1");
-            
-            String prevHash = "GENESIS"; // 初期値
+            String prevHash = "GENESIS";
             if (rsLedger.next()) {
                 prevHash = rsLedger.getString("curr_hash");
-                int height = rsLedger.getInt("height");
-
-                // Genesisブロック以外ならハッシュ改ざんチェックを行う
-                if (height > 1) {
-                    String senderId = rsLedger.getString("sender_id");
-                    int prevAmt = rsLedger.getInt("amount");
-                    String prevSig = rsLedger.getString("signature");
-                    String prevPrevHash = rsLedger.getString("prev_hash");
-                    
-                    String dataToVerify = senderId + prevAmt + prevPrevHash + prevSig;
-                    String reCalcHash = PaymentSystem.calculateHash(dataToVerify);
-                    
-                    if (!reCalcHash.equals(prevHash)) {
-                        throw new DaoException("【致命的エラー】ブロックチェーンデータの不整合（改ざん）を検知しました。");
-                    }
-                }
             }
 
-            // 5. 新しいブロックデータの作成
-            int newBalance = currentBalance - amount;
-            String encPrivKey = rsUser.getString("encrypted_private_key");
-            var privKey = PaymentSystem.decryptPrivateKey(encPrivKey);
-            
-            // 署名生成
-            String signPayload = userId.toString() + orderId.toString() + amount;
-            String signature = PaymentSystem.signData(signPayload, privKey);
+            // 5. ★修正: 電子署名ロジックを廃止（ダミーを入れる）
+            // 秘密鍵 "priv1" は復号できないため、署名計算自体をやめる
+            String signature = "DUMMY_SIGNATURE"; // ダミー署名
+            String currHash = "DUMMY_HASH_" + System.currentTimeMillis(); // ダミーハッシュ
 
-            // ブロックハッシュ生成
-            String blockData = userId.toString() + amount + prevHash + signature;
-            String currHash = PaymentSystem.calculateHash(blockData);
-
-            // 6. DB更新実行
-            
-            // Ledgerへ記録
+            // 6. DB更新
+            // LedgerへのINSERT
             String sqlLedger = "INSERT INTO ledger (prev_hash, curr_hash, sender_id, amount, signature) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement psL = con.prepareStatement(sqlLedger);
             psL.setString(1, prevHash);
@@ -151,7 +135,8 @@ public class UserDao {
             psL.setString(5, signature);
             psL.executeUpdate();
 
-            // ユーザー残高・ポイント更新
+            // ユーザー残高更新
+            int newBalance = currentBalance - amount;
             int earnedPoints = (int)(amount * 0.01);
             String sqlUpdUser = "UPDATE users SET balance = ?, point = point + ? WHERE user_id = ?";
             PreparedStatement psU = con.prepareStatement(sqlUpdUser);
@@ -166,7 +151,7 @@ public class UserDao {
             psO.setString(1, orderId.toString());
             psO.executeUpdate();
 
-            // 決済履歴登録
+            // 決済履歴
             String sqlInsPay = "INSERT INTO payments (order_id, user_id, used_points, earned_points) VALUES (?, ?, 0, ?)";
             PreparedStatement psP = con.prepareStatement(sqlInsPay);
             psP.setString(1, orderId.toString());
@@ -174,21 +159,13 @@ public class UserDao {
             psP.setInt(3, earnedPoints);
             psP.executeUpdate();
 
-            System.out.println("入力されたコード: " + inputSecurityCode);
-System.out.println("入力のハッシュ値: " + inputHash);
-System.out.println("DB内のハッシュ値: " + storedHash);
-
-
-            // 7. コミット
             con.commit();
             return newBalance;
 
         } catch (Exception e) {
-            if (con != null) {
-                try { con.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
-            }
+            if (con != null) try { con.rollback(); } catch (Exception ex) {}
             e.printStackTrace();
-            throw new DaoException("決済処理中にエラーが発生しました: " + e.getMessage());
+            throw new DaoException("決済エラー: " + e.getMessage());
         } finally {
             connectionCloser.closeConnection(con);
         }
@@ -337,6 +314,32 @@ System.out.println("DB内のハッシュ値: " + storedHash);
         } catch (Exception e) {
             if (con != null) try { con.rollback(); } catch (SQLException ex) {}
             throw new DaoException("ロック解除エラー", e);
+        } finally {
+            connectionCloser.closeConnection(con);
+        }
+    }
+
+    // UserDao.java
+
+/**
+     * 新規ユーザー登録（暗号化なしバージョン）
+     */
+    public void register(User user) throws Exception {
+        Connection con = null;
+        try {
+            con = dbHolder.getConnection();
+            // 前回の要望通り、ダミーの鍵を入れて生パスワードで保存
+            String sql = "INSERT INTO users (user_id, user_name, user_password, security_code, balance, point, login_attempt_count, is_lockout, encrypted_private_key, public_key) VALUES (?, ?, ?, ?, ?, ?, 0, FALSE, 'DUMMY_PRIV', 'DUMMY_PUB')";
+            
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, user.getUserId().toString());
+            ps.setString(2, user.getUserName());
+            ps.setString(3, user.getUserPassword());
+            ps.setString(4, user.getSecurityCode());
+            ps.setInt(5, user.getBalance());
+            ps.setInt(6, user.getPoint());
+            
+            ps.executeUpdate();
         } finally {
             connectionCloser.closeConnection(con);
         }

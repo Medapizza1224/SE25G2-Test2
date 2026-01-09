@@ -24,7 +24,7 @@
             <button type="submit">ログイン</button>
         </form>
         <br>
-        <a href="${pageContext.request.contextPath}/PaymentSetup" style="font-size:12px;">データ未作成の方はこちら(Setup)</a>
+        <a href="${pageContext.request.contextPath}/user_signup" style="font-size:12px;">アカウント作成</a>
     </div>
 </body>
 </html>
