@@ -14,7 +14,7 @@
     <title>注文端末：人数</title>
     <style>
         /* =========================================
-           基本スタイル (PC向けにサイズアップ)
+           基本スタイル
            ========================================= */
         body {
             font-family: "Yu Gothic", "YuGothic", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
@@ -25,13 +25,13 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center; /* 画面中央に配置 */
+            justify-content: center;
             min-height: 100vh;
         }
 
         .container {
             width: 100%;
-            max-width: 900px; /* ★幅を大きくしました */
+            max-width: 900px;
             padding: 40px;
             box-sizing: border-box;
             text-align: center;
@@ -47,27 +47,26 @@
             margin-bottom: 40px;
         }
         
-        /* ロゴ画像のサイズ調整 */
         .header-logo img {
-            height: 60px; /* ★ロゴも少し大きく */
+            height: 60px;
             width: auto;
             display: block;
         }
 
         h2 {
-            font-size: 36px; /* ★文字サイズアップ */
+            font-size: 36px;
             font-weight: 700;
             margin: 0 0 50px 0;
             letter-spacing: 0.05em;
         }
 
         /* =========================================
-           入力パネル（グレー背景）
+           入力パネル
            ========================================= */
         .selection-panel {
             background-color: #F2F2F2;
-            border-radius: 20px; /* 角丸を少し大きく */
-            padding: 50px 60px; /* ★内側の余白をたっぷりと */
+            border-radius: 20px;
+            padding: 50px 60px;
             width: 100%;
             box-sizing: border-box;
             margin-bottom: 60px;
@@ -77,31 +76,23 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 50px; /* 行間を広げる */
+            margin-bottom: 50px;
         }
 
         .row:last-child {
             margin-bottom: 0;
         }
 
-        /* アイコンとラベル */
         .info-group {
             display: flex;
             align-items: center;
-            gap: 30px; /* アイコンと文字の間隔を広げる */
+            gap: 30px;
             text-align: left;
             margin-right: 30px;
         }
 
-        /* 人物アイコン画像のサイズ */
-        .person-icon-img {
-            width: 60px;  /* ★アイコンサイズアップ */
-            height: auto;
-            display: block;
-        }
-        
-        .child-icon-img {
-            width: 60px;  /* ★アイコンサイズアップ */
+        .person-icon-img, .child-icon-img {
+            width: 60px;
             height: auto;
             display: block;
         }
@@ -112,34 +103,33 @@
         }
 
         .label-main {
-            font-size: 28px; /* ★文字サイズアップ */
+            font-size: 28px;
             font-weight: 700;
         }
 
         .label-sub {
-            font-size: 20px; /* ★文字サイズアップ */
+            font-size: 20px;
             font-weight: 700;
             margin-top: 5px;
             color: #555;
         }
 
         /* =========================================
-           カウンターボタン（＋・−）
+           カウンターボタン
            ========================================= */
         .counter-group {
             display: flex;
             align-items: center;
-            gap: 30px; /* ボタンと数値の間隔を広げる */
+            gap: 30px;
             margin-left: 30px;
         }
 
-        /* ボタン枠 */
         .btn-img-wrapper {
             background: none;
             border: none;
             padding: 0;
             cursor: pointer;
-            width: 50px; /* ★ボタンを大きく (64px) */
+            width: 50px;
             height: 50px;
             display: flex;
             align-items: center;
@@ -147,7 +137,6 @@
             transition: opacity 0.2s;
         }
 
-        /* ボタン内の画像サイズ */
         .btn-img-wrapper img {
             width: 100%;
             height: 100%;
@@ -158,7 +147,7 @@
             opacity: 0.7;
         }
 
-        /* 無効化（限度到達）時のスタイル */
+        /* 無効化時のスタイル */
         .btn-disabled {
             cursor: default;
             pointer-events: none;
@@ -166,11 +155,10 @@
             filter: grayscale(100%);
         }
 
-        /* 数値表示 */
         .count-display {
-            font-size: 40px; /* ★数字をかなり大きく */
+            font-size: 40px;
             font-weight: 700;
-            width: 120px; /* 幅を確保 */
+            width: 120px;
             text-align: center;
             font-variant-numeric: tabular-nums;
         }
@@ -181,11 +169,11 @@
         .submit-btn {
             background-color: #FF6900;
             color: white;
-            font-size: 32px; /* ★ボタン文字サイズアップ */
+            font-size: 32px;
             font-weight: 700;
             border: none;
-            padding: 20px 0; /* 高さを出す */
-            width: 350px;   /* 幅を広げる */
+            padding: 20px 0;
+            width: 350px;
             border-radius: 60px;
             cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.15);
@@ -205,10 +193,8 @@
 
 <div class="container">
     
-    <!-- ロゴ画像 -->
     <div class="header-logo">
-        <!-- ▼ ロゴ画像のURLを指定してください ▼ -->
-        <img src="image/logo/logo.svg" alt="ロゴ">
+        <img src="${pageContext.request.contextPath}/image/logo/logo.svg" alt="ロゴ">
     </div>
 
     <h2>人数を選択してください</h2>
@@ -220,26 +206,22 @@
             <!-- 大人 -->
             <div class="row">
                 <div class="info-group">
-                    <!-- 大人アイコン画像 -->
-                    <img src="image/system/大人.svg" class="person-icon-img" alt="大人">
-                    
+                    <img src="${pageContext.request.contextPath}/image/system/大人.svg" class="person-icon-img" alt="大人">
                     <div class="label-container">
                         <span class="label-main">大人</span>
                     </div>
                 </div>
                 
                 <div class="counter-group">
-                    <!-- マイナスボタン画像 -->
                     <button type="button" id="btn-adult-minus" class="btn-img-wrapper" onclick="updateCount('adult', -1)">
-                        <img src="image/system/マイナス.svg" alt="減らす">
+                        <img src="${pageContext.request.contextPath}/image/system/マイナス.svg" alt="減らす">
                     </button>
                     
                     <span id="adult-display" class="count-display">1人</span>
                     <input type="hidden" id="adult-input" name="adult" value="1">
                     
-                    <!-- プラスボタン画像 -->
                     <button type="button" id="btn-adult-plus" class="btn-img-wrapper" onclick="updateCount('adult', 1)">
-                        <img src="image/system/プラス.svg" alt="増やす">
+                        <img src="${pageContext.request.contextPath}/image/system/プラス.svg" alt="増やす">
                     </button>
                 </div>
             </div>
@@ -247,9 +229,7 @@
             <!-- 子ども -->
             <div class="row">
                 <div class="info-group">
-                    <!-- 子どもアイコン画像 -->
-                    <img src="image/system/子供.svg" class="child-icon-img" alt="子ども">
-                    
+                    <img src="${pageContext.request.contextPath}/image/system/子供.svg" class="child-icon-img" alt="子ども">
                     <div class="label-container">
                         <span class="label-main">子ども</span>
                         <span class="label-sub">（〜12歳）</span>
@@ -257,17 +237,15 @@
                 </div>
                 
                 <div class="counter-group">
-                    <!-- マイナスボタン画像 -->
                     <button type="button" id="btn-child-minus" class="btn-img-wrapper" onclick="updateCount('child', -1)">
-                        <img src="image/system/マイナス.svg" alt="減らす">
+                        <img src="${pageContext.request.contextPath}/image/system/マイナス.svg" alt="減らす">
                     </button>
                     
                     <span id="child-display" class="count-display">0人</span>
                     <input type="hidden" id="child-input" name="child" value="0">
                     
-                    <!-- プラスボタン画像 -->
                     <button type="button" id="btn-child-plus" class="btn-img-wrapper" onclick="updateCount('child', 1)">
-                        <img src="image/system/プラス.svg" alt="増やす">
+                        <img src="${pageContext.request.contextPath}/image/system/プラス.svg" alt="増やす">
                     </button>
                 </div>
             </div>
@@ -279,28 +257,62 @@
 </div>
 
 <script>
-    <script>
     // 最小値・最大値の設定
     const limits = {
         adult: { min: 1, max: 8 },
         child: { min: 0, max: 7 }
     };
     
-    // ★追加: 合計人数の上限
+    // 合計人数の上限
     const TOTAL_MAX = 8;
 
-    // 初期ロード時にボタンの状態をチェック
-    window.addEventListener('DOMContentLoaded', () => {
-        updateAllButtons();
-    });
-
-    // ★追加: 現在の合計人数を取得する関数
+    // 現在の合計人数を取得する関数
     function getTotalCount() {
-        const adult = parseInt(document.getElementById('adult-input').value) || 0;
-        const child = parseInt(document.getElementById('child-input').value) || 0;
+        const adultInput = document.getElementById('adult-input');
+        const childInput = document.getElementById('child-input');
+        
+        // 要素が取得できない場合は0を返す（エラー防止）
+        if (!adultInput || !childInput) return 0;
+
+        const adult = parseInt(adultInput.value) || 0;
+        const child = parseInt(childInput.value) || 0;
         return adult + child;
     }
 
+    // ボタンの状態（グレーアウト）を更新する関数
+    function checkButtonState(type) {
+        const input = document.getElementById(type + '-input');
+        if (!input) return;
+
+        const currentValue = parseInt(input.value);
+        const limit = limits[type];
+        const currentTotal = getTotalCount();
+
+        const minusBtn = document.getElementById('btn-' + type + '-minus');
+        const plusBtn = document.getElementById('btn-' + type + '-plus');
+
+        // マイナスボタンの制御（最小値以下なら無効）
+        if (currentValue <= limit.min) {
+            minusBtn.classList.add('btn-disabled');
+        } else {
+            minusBtn.classList.remove('btn-disabled');
+        }
+
+        // プラスボタンの制御（最大値以上、または合計が8人以上なら無効）
+        if (currentValue >= limit.max || currentTotal >= TOTAL_MAX) {
+            plusBtn.classList.add('btn-disabled');
+        } else {
+            plusBtn.classList.remove('btn-disabled');
+        }
+    }
+
+    // 両方のカテゴリのボタン状態を更新する
+    function updateAllButtons() {
+        checkButtonState('adult');
+        checkButtonState('child');
+    }
+
+    // ボタンクリック時の処理
     function updateCount(type, delta) {
         const input = document.getElementById(type + '-input');
         const display = document.getElementById(type + '-display');
@@ -309,53 +321,25 @@
         let newValue = currentValue + delta;
         let currentTotal = getTotalCount();
 
-        // ★追加: 増やす場合、合計が8人を超えるなら何もしない
+        // 増やす操作で、合計が上限を超える場合は何もしない
         if (delta > 0 && currentTotal >= TOTAL_MAX) {
             return;
         }
 
-        // 範囲チェック (個別の最小・最大チェック)
+        // 個別の範囲チェック
         if (newValue >= limits[type].min && newValue <= limits[type].max) {
             input.value = newValue;
             display.textContent = newValue + '人';
             
-            // ★変更: 両方のボタンの状態を更新する
-            // (合計人数が変わると、もう片方のボタンの押下可否も変わるため)
+            // 状態更新
             updateAllButtons();
         }
     }
 
-    // ★追加: 両方のカテゴリのボタン状態を更新するラッパー関数
-    function updateAllButtons() {
-        checkButtonState('adult');
-        checkButtonState('child');
-    }
-
-    // ボタンの有効/無効化（グレーアウト）処理
-    function checkButtonState(type) {
-        const input = document.getElementById(type + '-input');
-        const currentValue = parseInt(input.value);
-        const limit = limits[type];
-        const currentTotal = getTotalCount(); // 現在の合計を取得
-
-        const minusBtn = document.getElementById('btn-' + type + '-minus');
-        const plusBtn = document.getElementById('btn-' + type + '-plus');
-
-        // マイナスボタンの制御（下限チェック）
-        if (currentValue <= limit.min) {
-            minusBtn.classList.add('btn-disabled');
-        } else {
-            minusBtn.classList.remove('btn-disabled');
-        }
-
-        // プラスボタンの制御
-        // ★変更: 「個別の最大値に達している」または「合計が8人に達している」場合は無効化
-        if (currentValue >= limit.max || currentTotal >= TOTAL_MAX) {
-            plusBtn.classList.add('btn-disabled');
-        } else {
-            plusBtn.classList.remove('btn-disabled');
-        }
-    }
+    // 初期ロード時にボタンの状態をチェック
+    window.addEventListener('DOMContentLoaded', () => {
+        updateAllButtons();
+    });
 </script>
 
 </body>
