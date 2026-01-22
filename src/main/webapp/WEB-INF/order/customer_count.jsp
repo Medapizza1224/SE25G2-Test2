@@ -279,17 +279,27 @@
 </div>
 
 <script>
+    <script>
     // 最小値・最大値の設定
     const limits = {
         adult: { min: 1, max: 8 },
         child: { min: 0, max: 7 }
     };
+    
+    // ★追加: 合計人数の上限
+    const TOTAL_MAX = 8;
 
     // 初期ロード時にボタンの状態をチェック
     window.addEventListener('DOMContentLoaded', () => {
-        checkButtonState('adult');
-        checkButtonState('child');
+        updateAllButtons();
     });
+
+    // ★追加: 現在の合計人数を取得する関数
+    function getTotalCount() {
+        const adult = parseInt(document.getElementById('adult-input').value) || 0;
+        const child = parseInt(document.getElementById('child-input').value) || 0;
+        return adult + child;
+    }
 
     function updateCount(type, delta) {
         const input = document.getElementById(type + '-input');
@@ -297,15 +307,28 @@
         
         let currentValue = parseInt(input.value);
         let newValue = currentValue + delta;
+        let currentTotal = getTotalCount();
 
-        // 範囲チェック (範囲内の場合のみ更新)
+        // ★追加: 増やす場合、合計が8人を超えるなら何もしない
+        if (delta > 0 && currentTotal >= TOTAL_MAX) {
+            return;
+        }
+
+        // 範囲チェック (個別の最小・最大チェック)
         if (newValue >= limits[type].min && newValue <= limits[type].max) {
             input.value = newValue;
             display.textContent = newValue + '人';
             
-            // ボタンの見た目を更新
-            checkButtonState(type);
+            // ★変更: 両方のボタンの状態を更新する
+            // (合計人数が変わると、もう片方のボタンの押下可否も変わるため)
+            updateAllButtons();
         }
+    }
+
+    // ★追加: 両方のカテゴリのボタン状態を更新するラッパー関数
+    function updateAllButtons() {
+        checkButtonState('adult');
+        checkButtonState('child');
     }
 
     // ボタンの有効/無効化（グレーアウト）処理
@@ -313,19 +336,21 @@
         const input = document.getElementById(type + '-input');
         const currentValue = parseInt(input.value);
         const limit = limits[type];
+        const currentTotal = getTotalCount(); // 現在の合計を取得
 
         const minusBtn = document.getElementById('btn-' + type + '-minus');
         const plusBtn = document.getElementById('btn-' + type + '-plus');
 
-        // 下限チェック
+        // マイナスボタンの制御（下限チェック）
         if (currentValue <= limit.min) {
             minusBtn.classList.add('btn-disabled');
         } else {
             minusBtn.classList.remove('btn-disabled');
         }
 
-        // 上限チェック
-        if (currentValue >= limit.max) {
+        // プラスボタンの制御
+        // ★変更: 「個別の最大値に達している」または「合計が8人に達している」場合は無効化
+        if (currentValue >= limit.max || currentTotal >= TOTAL_MAX) {
             plusBtn.classList.add('btn-disabled');
         } else {
             plusBtn.classList.remove('btn-disabled');
