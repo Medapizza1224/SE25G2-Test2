@@ -116,7 +116,7 @@
             <div class="icon-btn">🏠</div>
             <div class="header-title">焼肉〇〇</div>
             <!-- ログアウト -->
-            <a href="${pageContext.request.contextPath}/user_signin" class="icon-btn" title="ログアウト">🚪</a>
+            <a href="${pageContext.request.contextPath}User" class="icon-btn" title="ログアウト">🚪</a>
         </div>
 
         <div class="content">

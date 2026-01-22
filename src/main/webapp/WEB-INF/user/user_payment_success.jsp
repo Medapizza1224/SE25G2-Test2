@@ -160,7 +160,7 @@
             <img src="${pageContext.request.contextPath}/image/logo/logo.svg?t=<%= System.currentTimeMillis() %>" alt="ロゴ" class="logo-img">
             
             <!-- ログアウト -->
-            <a href="${pageContext.request.contextPath}/user_signin" class="header-right">
+            <a href="${pageContext.request.contextPath}User" class="header-right">
                 <img src="${pageContext.request.contextPath}/image/system/logout.svg" alt="ログアウト" class="logout-icon">
             </a>
         </div>

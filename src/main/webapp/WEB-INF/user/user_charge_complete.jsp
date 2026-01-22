@@ -114,7 +114,7 @@
                 <span>焼肉〇〇</span>
             </div>
             
-            <a href="${pageContext.request.contextPath}/user_signin">
+            <a href="${pageContext.request.contextPath}User">
                 <span class="icon">🚪</span>
                 <span>ログアウト</span>
             </a>

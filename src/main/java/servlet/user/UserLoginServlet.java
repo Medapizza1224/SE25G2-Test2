@@ -11,10 +11,10 @@ import control.user.UserLogin;
 import control.user.UserLoginResult;
 import modelUtil.Failure;
 
-@WebServlet("/user_signin")
+@WebServlet("User")
 public class UserLoginServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getRequestDispatcher("/WEB-INF/user/user_signin.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/userUser.jsp").forward(request, response);
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -34,7 +34,7 @@ public class UserLoginServlet extends HttpServlet {
 
         } catch (Failure e) {
             request.setAttribute("error", e.getMessage());
-            request.getRequestDispatcher("/WEB-INF/user/user_signin.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/userUser.jsp").forward(request, response);
         }
     }
 }

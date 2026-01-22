@@ -32,7 +32,7 @@ public class UserPaymentServlet extends HttpServlet {
         User sessionUser = (User) session.getAttribute("user");
         // 1. ログインチェック
         if (sessionUser == null) {
-            response.sendRedirect(request.getContextPath() + "/user_signin");
+            response.sendRedirect(request.getContextPath() + "User");
             return;
         }
 
@@ -92,7 +92,7 @@ public class UserPaymentServlet extends HttpServlet {
 
         // セッション切れチェック
         if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/user_signin");
+            response.sendRedirect(request.getContextPath() + "User");
             return;
         }
 

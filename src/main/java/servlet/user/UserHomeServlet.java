@@ -23,7 +23,7 @@ public class UserHomeServlet extends HttpServlet {
 
         // 1. ログインチェック
         if (sessionUser == null) {
-            response.sendRedirect(request.getContextPath() + "/user_signin");
+            response.sendRedirect(request.getContextPath() + "/User");
             return;
         }
 
@@ -46,7 +46,7 @@ public class UserHomeServlet extends HttpServlet {
         } catch (Exception e) {
             e.printStackTrace();
             // エラー時はログイン画面へ戻すなどの安全策
-            response.sendRedirect(request.getContextPath() + "/user_signin");
+            response.sendRedirect(request.getContextPath() + "/User");
         }
     }
 }

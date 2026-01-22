@@ -18,11 +18,12 @@ public class TableSetupControl {
     // 新規テーブル開始前のチェック
     public void checkNewTable(String tableNumber) throws Failure, Exception {
         if (tableNumber == null || !tableNumber.matches("\\d{4}")) {
-            throw new Failure("テーブル番号は4桁の数字で入力してください (例: 0001)");
+            throw new Failure("テーブル番号は4桁の数字で入力してください");
         }
 
         OrderDao dao = new OrderDao();
         if (dao.isTableOccupied(tableNumber)) {
+            // ★ 指定のエラーメッセージに変更
             throw new Failure("テーブル " + tableNumber + " は現在稼働中です。復旧リストから選択するか、別の番号を指定してください。");
         }
     }

@@ -43,7 +43,7 @@ public class UserChargeServlet extends HttpServlet {
         User sessionUser = (User) session.getAttribute("user");
         
         if (sessionUser == null) {
-            response.sendRedirect(request.getContextPath() + "/user_signin");
+            response.sendRedirect(request.getContextPath() + "User");
             return;
         }
 

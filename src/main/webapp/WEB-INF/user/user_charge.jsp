@@ -217,7 +217,7 @@
             <div class="header-title">チャージ</div>
             
             <!-- 閉じるボタンとして機能させる -->
-            <a href="${pageContext.request.contextPath}/user_signin" class="logout-link">
+            <a href="${pageContext.request.contextPath}User" class="logout-link">
                 <!-- 元のアイコンはCSSで非表示にし、疑似要素で「×」を表示 -->
                 <div>🚪</div>
                 <div>ログアウト</div>
