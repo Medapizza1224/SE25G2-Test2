@@ -1,6 +1,14 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<c:if test="${empty sessionScope.user}">
+    <c:redirect url="/User" />
+</c:if>
+<%
+    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1
+    response.setHeader("Pragma", "no-cache"); // HTTP 1.0
+    response.setDateHeader("Expires", 0); // Proxies
+%>
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -8,6 +16,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>チャージ</title>
+    <script>
+        window.addEventListener('pageshow', function(event) {
+            // "event.persisted" は「キャッシュから表示されたか」のフラグ
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload(); // リロードしてサーバーのチェックを走らせる
+            }
+        });
+    </script>
     <style>
         body {
             font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
@@ -19,7 +35,7 @@
         }
         .container {
             width: 100%;
-            max-width: 480px; /* SVGの幅感に合わせて調整 */
+            max-width: 420px; /* SVGの幅感に合わせて調整 */
             background: transparent;
             min-height: 100vh;
             display: flex;
@@ -87,16 +103,6 @@
         }
         .balance-label { font-size: 13px; margin-bottom: 8px; opacity: 0.9; }
         .balance-amount { font-size: 32px; font-weight: bold; letter-spacing: 0.5px; font-family: Arial, sans-serif; }
-        /* SVGにある更新マーク風の装飾 */
-        .balance-card::after {
-            content: "↻";
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 20px;
-            opacity: 0.8;
-            font-weight: bold;
-        }
 
         /* 入力エリア */
         .label { 
@@ -170,15 +176,26 @@
             background-color: #FF0000; /* 赤丸 */
             position: relative;
         }
-        /* チェックマーク */
-        .check-circle::after {
-            content: "";
+        /* --- 修正後（追加） --- */
+        .refresh-btn {
             position: absolute;
-            left: 7px; top: 3px;
-            width: 6px; height: 10px;
-            border: solid white;
-            border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            opacity: 0.8;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            transition: transform 0.3s;
+            z-index: 10;
+        }
+        .refresh-btn:active {
+            transform: rotate(360deg);
+            opacity: 1;
         }
 
         /* チャージボタン: SVGの一番下の赤いボタン */
@@ -208,20 +225,25 @@
         <!-- ヘッダー -->
         <div class="header">
             <!-- 戻るボタンとして機能させる -->
-            <a href="${pageContext.request.contextPath}/user_home" class="home-link">
-                <!-- 元のアイコンはCSSで非表示にし、疑似要素で「‹」を表示 -->
-                <div>🏠</div>
-                <div>ホーム</div>
-            </a>
+            <c:choose>
+                <c:when test="${param.returnTo == 'payment'}">
+                    <a href="${pageContext.request.contextPath}/UserPayment?orderId=${param.orderId}" class="home-link">
+                        <div>↩</div>
+                        <div>戻る</div>
+                    </a>
+                </c:when>
+                <c:otherwise>
+                    <a href="${pageContext.request.contextPath}/user_home" class="home-link">
+                        <div>🏠</div>
+                        <div>ホーム</div>
+                    </a>
+                </c:otherwise>
+            </c:choose>
             
             <div class="header-title">チャージ</div>
             
             <!-- 閉じるボタンとして機能させる -->
-            <a href="${pageContext.request.contextPath}User" class="logout-link">
-                <!-- 元のアイコンはCSSで非表示にし、疑似要素で「×」を表示 -->
-                <div>🚪</div>
-                <div>ログアウト</div>
-            </a>
+            <div style="width: 40px;"></div>
         </div>
 
         <div class="content">
@@ -229,6 +251,8 @@
             <div class="balance-card">
                 <div class="balance-label">残高</div>
                 <div class="balance-amount">¥ <fmt:formatNumber value="${user.balance}" /></div>
+                <!-- ボタンを追加: クリックでページ再読み込み -->
+                <button type="button" class="refresh-btn" onclick="location.reload()" title="残高を更新">↻</button>
             </div>
 
             <!-- エラーメッセージ -->
@@ -237,6 +261,9 @@
             </c:if>
 
             <form action="${pageContext.request.contextPath}/UserCharge" method="post">
+                <!-- 追加: 戻り先情報の維持 -->
+                <input type="hidden" name="returnTo" value="${param.returnTo}">
+                <input type="hidden" name="orderId" value="${param.orderId}">
                 <!-- チャージ金額入力 -->
                 <label class="label">チャージ金額</label>
                 <input type="number" id="chargeInput" name="amount" class="input-box" value="5000" placeholder="¥ 0">

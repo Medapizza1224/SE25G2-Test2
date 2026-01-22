@@ -6,6 +6,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import control.admin.AdminUserView;
 import control.admin.AdminUserViewResult;
 
@@ -14,7 +15,11 @@ public class AdminUserViewServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("adminNameManagement") == null) {
+            response.sendRedirect(request.getContextPath() + "/Admin");
+            return;
+        }
         
         try {
             // コントローラを実行して結果を取得

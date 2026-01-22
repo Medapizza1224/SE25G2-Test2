@@ -1,6 +1,14 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<c:if test="${empty sessionScope.user}">
+    <c:redirect url="/User" />
+</c:if>
+<%
+    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1
+    response.setHeader("Pragma", "no-cache"); // HTTP 1.0
+    response.setDateHeader("Expires", 0); // Proxies
+%>
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -8,6 +16,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ホーム - 焼肉〇〇</title>
+    <script>
+        window.addEventListener('pageshow', function(event) {
+            // "event.persisted" は「キャッシュから表示されたか」のフラグ
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload(); // リロードしてサーバーのチェックを走らせる
+            }
+        });
+    </script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
@@ -116,7 +132,7 @@
             <div class="icon-btn">🏠</div>
             <div class="header-title">焼肉〇〇</div>
             <!-- ログアウト -->
-            <a href="${pageContext.request.contextPath}User" class="icon-btn" title="ログアウト">🚪</a>
+            <a href="${pageContext.request.contextPath}/User?action=logout" class="icon-btn" title="ログアウト">🚪</a>
         </div>
 
         <div class="content">

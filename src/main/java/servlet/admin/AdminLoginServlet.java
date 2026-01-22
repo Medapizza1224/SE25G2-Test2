@@ -18,6 +18,14 @@ public class AdminLoginServlet extends HttpServlet {
 
     // GET: ログイン画面の表示
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        if ("logout".equals(request.getParameter("action"))) {
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.invalidate();
+            }
+            response.sendRedirect(request.getContextPath() + "/Admin");
+            return;
+    }
         // すでにログイン済みならメニューへ飛ばす等の処理をここに書いてもよい
         request.getRequestDispatcher("/WEB-INF/admin/admin_login.jsp").forward(request, response);
     }

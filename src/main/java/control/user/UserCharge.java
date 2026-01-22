@@ -3,16 +3,15 @@ package control.user;
 import java.util.UUID;
 import dao.DaoException;
 import dao.UserDao;
+import entity.User;
 import modelUtil.Failure;
 
 public class UserCharge {
 
-    /**
-     * チャージ処理を実行する
-     */
+    // チャージ後の残高上限 (500,000円)
+    private static final int MAX_BALANCE = 500000;
+
     public UserChargeResult execute(UUID userId, String amountStr) throws Failure {
-        
-        // 1. 入力値検証
         if (userId == null) {
             throw new Failure("ユーザーセッションが無効です。");
         }
@@ -25,16 +24,24 @@ public class UserCharge {
             throw new Failure("チャージ金額は正の整数で入力してください。");
         }
 
-        // 2. チャージ実行 (DAO呼び出し)
         try {
             UserDao dao = new UserDao();
-            // ブロックチェーン記録と残高更新を行い、新しい残高を受け取る
+            
+            // ★追加: 現在の残高を取得して上限チェック
+            User currentUser = dao.findById(userId);
+            if (currentUser == null) {
+                throw new Failure("ユーザーが見つかりません。");
+            }
+            if (currentUser.getBalance() + amount > MAX_BALANCE) {
+                throw new Failure("チャージ後の残高が上限（500,000円）を超えます。");
+            }
+
+            // チャージ実行
             int newBalance = dao.userCharge(userId, amount);
             
             return new UserChargeResult(amount, newBalance);
 
         } catch (DaoException e) {
-            // DBエラーなどの業務例外
             throw new Failure(e.getMessage(), e);
         } catch (Exception e) {
             e.printStackTrace();

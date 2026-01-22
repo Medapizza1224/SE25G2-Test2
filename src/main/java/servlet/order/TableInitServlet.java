@@ -11,6 +11,15 @@ import control.order.TableInitResult;
 public class TableInitServlet extends HttpServlet {
     
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        if ("logout".equals(request.getParameter("action"))) {
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.invalidate();
+            }
+            // 初期画面へ
+            response.sendRedirect("Order"); 
+            return;
+        }
         HttpSession session = request.getSession(false);
         if (session != null && session.getAttribute("adminAuthForSetup") != null) {
             response.sendRedirect("OrderSetup");

@@ -32,4 +32,4 @@ git pull origin main --rebase
 
 
 #テキスト取得
-docker exec se25g2-test2_devcontainer-devcontainer-1 sh -c 'find /workspaces/SE25G2-Test2 -type f \( -name "*.java" -o -name "*.jsp" -o -name "*.md" -o -name "*.sql" \) -exec sh -c "echo ================================; echo FILE: {}; echo ================================; cat {}; echo -e \"\n\"" \;' > ~/Desktop/all_codes3.txt
+docker exec se25g2-test2_devcontainer-devcontainer-1 sh -c 'find /workspaces/SE25G2-Test2 -type f \( -name "*.java" -o -name "*.jsp" -o -name "*.md" -o -name "*.sql" \) -exec sh -c "echo ================================; echo FILE: {}; echo ================================; cat {}; echo -e \"\n\"" \;' > ~/Desktop/all_codes0122-2056.txt

@@ -7,6 +7,9 @@
     AppConfig appSettings = AppConfig.load(application);
     request.setAttribute("conf", appSettings);
 %>
+<c:if test="${empty sessionScope.adminNameManagement}">
+    <c:redirect url="/Admin" />
+</c:if>
 
 <c:if test="${empty sessionScope.adminNameManagement}">
     <c:redirect url="/Admin" />
@@ -102,7 +105,7 @@
         <a href="admin-setup" class="sidebar-item active">
             <img src="${pageContext.request.contextPath}/image/system/icon_setting.svg" class="icon-img"> 設定
         </a>
-        <a href="Admin" class="sidebar-item" style="margin-top:auto;">
+        <a href="Admin?action=logout" class="sidebar-item" style="margin-top:auto;">
             <img src="${pageContext.request.contextPath}/image/system/icon_logout.svg" class="icon-img"> ログアウト
         </a>
     </div>
@@ -124,7 +127,7 @@
         <div class="card">
             <div class="card-head">店舗ロゴ設定</div>
             <p style="font-size:12px; color:#666;">現在のロゴ：</p>
-            <div style="background:#eee; display:inline-block; padding:10px; border-radius:4px; margin-bottom:15px;">
+            <div style="display:inline-block; padding:10px; border-radius:4px; margin-bottom:15px;">
                 <img src="${pageContext.request.contextPath}/image/logo/logo.svg?v=${applicationScope.logoVersion}" width="100" alt="ロゴ">
             </div>
             <form action="admin-setup" method="post" enctype="multipart/form-data">
@@ -143,17 +146,18 @@
                 <div class="card-head">テーマカラー設定</div>
                 <label>プリセットから選択</label>
                 <div class="color-preset">
-                    <div class="color-btn" style="background:#FF6900" onclick="setColor('#FF6900')"></div>
+                    <div class="color-btn" style="background:#FF0000" onclick="setColor('#FF0000')"></div>
                     <div class="color-btn" style="background:#E74C3C" onclick="setColor('#E74C3C')"></div>
-                    <div class="color-btn" style="background:#8E44AD" onclick="setColor('#8E44AD')"></div>
-                    <div class="color-btn" style="background:#3498DB" onclick="setColor('#3498DB')"></div>
-                    <div class="color-btn" style="background:#1ABC9C" onclick="setColor('#1ABC9C')"></div>
-                    <div class="color-btn" style="background:#2ECC71" onclick="setColor('#2ECC71')"></div>
-                    <div class="color-btn" style="background:#F1C40F" onclick="setColor('#F1C40F')"></div>
+                    <div class="color-btn" style="background:#FF6900" onclick="setColor('#FF6900')"></div>
                     <div class="color-btn" style="background:#E67E22" onclick="setColor('#E67E22')"></div>
-                    <div class="color-btn" style="background:#34495E" onclick="setColor('#34495E')"></div>
-                    <div class="color-btn" style="background:#95A5A6" onclick="setColor('#95A5A6')"></div>
-                    <div class="color-btn" style="background:#7F8C8D" onclick="setColor('#7F8C8D')"></div>
+                    <div class="color-btn" style="background:#F1C40F" onclick="setColor('#F1C40F')"></div>
+                    <div class="color-btn" style="background:#92D050" onclick="setColor('#92D050')"></div>
+                    <div class="color-btn" style="background:#47D45A" onclick="setColor('#47D45A')"></div>
+                    <div class="color-btn" style="background:#00B050" onclick="setColor('#00B050')"></div>
+                    <div class="color-btn" style="background:#00B0F0" onclick="setColor('#00B0F0')"></div>
+                    <div class="color-btn" style="background:#0070C0" onclick="setColor('#0070C0')"></div>
+                    <div class="color-btn" style="background:#0E2841" onclick="setColor('#0E2841')"></div>
+                    <div class="color-btn" style="background:#7030A0" onclick="setColor('#7030A0')"></div>
                     <div class="color-btn" style="background:#000000" onclick="setColor('#000000')"></div>
                 </div>
                 <label>カスタム (RGB)</label>

@@ -1,4 +1,10 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<c:if test="${empty sessionScope.user}">
+    <c:redirect url="/User" />
+</c:if>
+
 <!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><title>登録完了</title></head>

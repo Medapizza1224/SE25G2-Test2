@@ -66,7 +66,7 @@
         <a href="admin-setup" class="sidebar-item">
             <img src="${pageContext.request.contextPath}/image/system/icon_setting.svg" class="icon-img"> 設定
         </a>
-        <a href="Admin" class="sidebar-item" style="margin-top:auto;">
+        <a href="Admin?action=logout" class="sidebar-item" style="margin-top:auto;">
             <img src="${pageContext.request.contextPath}/image/system/icon_logout.svg" class="icon-img"> ログアウト
         </a>
     </div>

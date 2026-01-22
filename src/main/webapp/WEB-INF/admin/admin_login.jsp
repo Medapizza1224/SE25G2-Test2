@@ -1,5 +1,14 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ page import="util.AppConfig" %>
+<%
+    // 変数名を config -> appSettings に変更
+    AppConfig appSettings = AppConfig.load(application);
+    request.setAttribute("conf", appSettings);
+%>
+
 <!DOCTYPE html>
 <html>
 <head>

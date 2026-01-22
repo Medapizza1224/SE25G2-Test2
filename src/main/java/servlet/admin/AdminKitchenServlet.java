@@ -13,7 +13,11 @@ public class AdminKitchenServlet extends HttpServlet {
     
     // 画面表示
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("adminNameManagement") == null) {
+            response.sendRedirect(request.getContextPath() + "/Admin");
+            return;
+        }
         
         AdminKitchenControl control = new AdminKitchenControl();
         AdminKitchenResult result = control.execute();
@@ -24,7 +28,11 @@ public class AdminKitchenServlet extends HttpServlet {
 
     // 提供完了処理
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("adminNameManagement") == null) {
+            response.sendRedirect(request.getContextPath() + "/Admin");
+            return;
+        }
         String itemId = request.getParameter("orderItemId");
         
         AdminKitchenUpdateControl control = new AdminKitchenUpdateControl();

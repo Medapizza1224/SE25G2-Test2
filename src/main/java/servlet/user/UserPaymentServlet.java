@@ -32,7 +32,7 @@ public class UserPaymentServlet extends HttpServlet {
         User sessionUser = (User) session.getAttribute("user");
         // 1. ログインチェック
         if (sessionUser == null) {
-            response.sendRedirect(request.getContextPath() + "User");
+            response.sendRedirect(request.getContextPath() + "/user_signin");
             return;
         }
 
@@ -90,9 +90,8 @@ public class UserPaymentServlet extends HttpServlet {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
 
-        // セッション切れチェック
         if (user == null) {
-            response.sendRedirect(request.getContextPath() + "User");
+            response.sendRedirect(request.getContextPath() + "/User");
             return;
         }
 
@@ -102,47 +101,25 @@ public class UserPaymentServlet extends HttpServlet {
 
         try {
             UserPayment control = new UserPayment();
-            // 決済実行
             UserPaymentResult result = control.execute(user.getUserId(), orderIdStr, amountStr, securityCode);
 
-            // 成功時
             request.setAttribute("result", result);
             request.setAttribute("successMessage", true);
             request.getRequestDispatcher("/WEB-INF/user/user_payment_success.jsp").forward(request, response);
 
         } catch (Failure e) {
-            // ★★★ ここを修正 ★★★
-            // 失敗時（セキュリティコード間違いなど）
-
-            // 1. エラーメッセージをセット
-            request.setAttribute("error", e.getMessage());
-
-            // 2. 画面を再描画するために必要なデータを再取得する (doGetと同じ処理)
-            try {
-                // 最新ユーザー情報
-                UserDao userDao = new UserDao();
-                User latestUser = userDao.findById(user.getUserId());
-                
-                // 注文情報
-                OrderDao orderDao = new OrderDao();
-                // orderIdStrがnullでないかチェック
-                if(orderIdStr != null) {
-                    Order order = orderDao.findById(UUID.fromString(orderIdStr));
-                    request.setAttribute("order", order);
-                }
-                
-                request.setAttribute("user", latestUser);
-                request.setAttribute("orderId", orderIdStr);
-                
-                // 入力していた金額を保持するためにセット（任意）
-                // request.setAttribute("amount", amountStr); 
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
+            // ★変更: 共通エラー画面へ遷移（残高不足、セキュリティコード違いなど）
+            request.setAttribute("errorMessage", e.getMessage());
+            
+            // 決済画面に戻れるようにURLを構築
+            String nextUrl = "/UserPayment";
+            if (orderIdStr != null) {
+                nextUrl += "?orderId=" + orderIdStr;
             }
-
-            // 3. 元の画面に戻す
-            request.getRequestDispatcher("/WEB-INF/user/user_payment.jsp").forward(request, response);
+            
+            request.setAttribute("nextUrl", nextUrl);
+            request.setAttribute("nextLabel", "決済画面へ戻る");
+            request.getRequestDispatcher("/WEB-INF/common_error.jsp").forward(request, response);
         }
     }
 }

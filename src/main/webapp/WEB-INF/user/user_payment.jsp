@@ -1,6 +1,14 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<c:if test="${empty sessionScope.user}">
+    <c:redirect url="/User" />
+</c:if>
+<%
+    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1
+    response.setHeader("Pragma", "no-cache"); // HTTP 1.0
+    response.setDateHeader("Expires", 0); // Proxies
+%>
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -8,6 +16,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>決済画面</title>
+        <script>
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                window.location.reload();
+            }
+        });
+    </script>
     <style>
         /* ベーススタイル */
         body {
@@ -267,7 +282,7 @@
             <div class="header" style="width:100%; box-sizing:border-box;">
                 <a href="${pageContext.request.contextPath}/user_home" class="icon-btn">🏠</a>
                 <div class="header-title">焼肉〇〇</div>
-                <div class="icon-btn">🚪</div>
+                <a href="${pageContext.request.contextPath}/User?action=logout" class="icon-btn" title="ログアウト">🚪</a>
             </div>
 
             <div class="content" style="width:100%; box-sizing:border-box;">
@@ -292,7 +307,7 @@
                     <div class="total-label" style="color:#666;">残高</div>
                     <div class="balance-row">
                         <div class="balance-value">¥<fmt:formatNumber value="${user.balance}" /></div>
-                        <a href="#" class="charge-btn">チャージ</a>
+                        <a href="${pageContext.request.contextPath}/UserCharge?returnTo=payment&orderId=${order.orderId}" class="charge-btn">チャージ</a>
                     </div>
                     <div class="available-point">
                         <span>利用可能ポイント</span>
@@ -341,7 +356,6 @@
                 <button class="key-btn" onclick="deleteDigit()">⌫</button>
             </div>
 
-            <div id="completeToast" class="toast">正しいコードを入力完了</div>
         </div>
 
     </div>

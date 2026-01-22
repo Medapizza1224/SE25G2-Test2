@@ -8,6 +8,9 @@
     AppConfig appSettings = AppConfig.load(application);
     request.setAttribute("conf", appSettings);
 %>
+<c:if test="${empty sessionScope.adminNameManagement}">
+    <c:redirect url="/Admin" />
+</c:if>
 
 <c:if test="${empty sessionScope.adminNameManagement}">
     <c:redirect url="/Admin" />
@@ -76,7 +79,7 @@
         <a href="admin-setup" class="sidebar-item">
             <img src="${pageContext.request.contextPath}/image/system/icon_setting.svg" class="icon-img"> 設定
         </a>
-        <a href="Admin" class="sidebar-item" style="margin-top:auto;">
+        <a href="Admin?action=logout" class="sidebar-item" style="margin-top:auto;">
             <img src="${pageContext.request.contextPath}/image/system/icon_logout.svg" class="icon-img"> ログアウト
         </a>
     </div>
@@ -88,11 +91,11 @@
 
         <div class="tab-container">
             <c:set var="cur" value="${result.currentType}" />
-            <a href="AdminAnalysis?type=Single" class="tab-btn ${cur == 'Single' ? 'active' : ''}">🕴 おひとり様</a>
-            <a href="AdminAnalysis?type=Pair" class="tab-btn ${cur == 'Pair' ? 'active' : ''}">👫 大人2人</a>
-            <a href="AdminAnalysis?type=Family" class="tab-btn ${cur == 'Family' ? 'active' : ''}">👨‍👩‍👧‍👦 ファミリー</a>
-            <a href="AdminAnalysis?type=AdultGroup" class="tab-btn ${cur == 'AdultGroup' ? 'active' : ''}">🍻 大人グループ</a>
-            <a href="AdminAnalysis?type=Group" class="tab-btn ${cur == 'Group' ? 'active' : ''}">🎉 グループ</a>
+            <a href="AdminAnalysis?type=Single" class="tab-btn ${cur == 'Single' ? 'active' : ''}">おひとり様</a>
+            <a href="AdminAnalysis?type=Pair" class="tab-btn ${cur == 'Pair' ? 'active' : ''}">大人2人</a>
+            <a href="AdminAnalysis?type=Family" class="tab-btn ${cur == 'Family' ? 'active' : ''}">ファミリー</a>
+            <a href="AdminAnalysis?type=AdultGroup" class="tab-btn ${cur == 'AdultGroup' ? 'active' : ''}">大人グループ</a>
+            <a href="AdminAnalysis?type=Group" class="tab-btn ${cur == 'Group' ? 'active' : ''}">グループ</a>
         </div>
 
         <div class="ranking-container">
@@ -105,12 +108,8 @@
                 </c:if>
                 <c:forEach var="item" items="${result.ranking}" varStatus="st">
                     <div class="rank-card">
-                        <c:choose>
-                            <c:when test="${st.count == 1}"><div class="crown gold">♛</div></c:when>
-                            <c:when test="${st.count == 2}"><div class="crown silver">♛</div></c:when>
-                            <c:when test="${st.count == 3}"><div class="crown bronze">♛</div></c:when>
-                            <c:otherwise><div class="rank-badge">${st.count}</div></c:otherwise>
-                        </c:choose>
+                        <!-- ここを統一しました -->
+                        <div class="rank-badge">${st.count}</div>
                         <img src="${pageContext.request.contextPath}/image/product/${item.image}" class="food-img" alt="商品画像">
                         <div class="food-name">${item.productName}</div>
                         <div class="food-count">注文数: ${item.count}</div>

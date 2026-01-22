@@ -7,6 +7,9 @@
     AppConfig appSettings = AppConfig.load(application);
     request.setAttribute("conf", appSettings);
 %>
+<c:if test="${empty sessionScope.adminNameManagement}">
+    <c:redirect url="/Admin" />
+</c:if>
 
 <c:if test="${empty sessionScope.adminNameManagement}">
     <c:redirect url="/Admin" />
@@ -64,7 +67,7 @@
         <a href="admin-setup" class="sidebar-item">
             <img src="${pageContext.request.contextPath}/image/system/icon_setting.svg" class="icon-img"> 設定
         </a>
-        <a href="Admin" class="sidebar-item" style="margin-top:auto;">
+        <a href="Admin?action=logout" class="sidebar-item" style="margin-top:auto;">
             <img src="${pageContext.request.contextPath}/image/system/icon_logout.svg" class="icon-img"> ログアウト
         </a>
     </div>

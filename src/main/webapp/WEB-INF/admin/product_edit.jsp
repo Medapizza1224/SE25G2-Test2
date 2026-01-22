@@ -1,13 +1,13 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ page import="util.AppConfig" %>
 <%
-    // 変数名を変更
+    // 変数名を config -> appSettings に変更
     AppConfig appSettings = AppConfig.load(application);
     request.setAttribute("conf", appSettings);
 %>
-
 <c:if test="${empty sessionScope.adminNameManagement}">
     <c:redirect url="/Admin" />
 </c:if>
@@ -74,7 +74,7 @@
         <a href="admin-setup" class="sidebar-item">
             <img src="${pageContext.request.contextPath}/image/system/icon_setting.svg" class="icon-img"> 設定
         </a>
-        <a href="Admin" class="sidebar-item" style="margin-top:auto;">
+        <a href="Admin?action=logout" class="sidebar-item" style="margin-top:auto;">
             <img src="${pageContext.request.contextPath}/image/system/icon_logout.svg" class="icon-img"> ログアウト
         </a>
     </div>

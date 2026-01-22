@@ -16,17 +16,23 @@ public class OrderSubmitServlet extends HttpServlet {
         Order order = (Order) session.getAttribute("order");
         Cart cart = (Cart) session.getAttribute("cart");
 
+        if (session.getAttribute("tableNumber") == null) {
+            response.sendRedirect(request.getContextPath() + "/Order");
+            return;
+        }
+
         OrderRegisterControl control = new OrderRegisterControl();
         OrderRegisterResult result = control.execute(order, cart);
 
         if (result.isSuccess()) {
-            cart.clear(); // カートを空にする
-            // 完了画面へリダイレクト
+            cart.clear();
             response.sendRedirect(request.getContextPath() + "/OrderComplete");
         } else {
-            // エラー時はメニューへ戻る（エラーメッセージ付き）
+            // ★変更: 共通エラー画面へ遷移
             request.setAttribute("errorMessage", result.getMessage());
-            request.getRequestDispatcher("/WEB-INF/order/menu.jsp").forward(request, response);
+            request.setAttribute("nextUrl", "/OrderHome"); // メニューへ戻る
+            request.setAttribute("nextLabel", "メニューへ戻る");
+            request.getRequestDispatcher("/WEB-INF/common_error.jsp").forward(request, response);
         }
     }
 }

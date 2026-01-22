@@ -9,6 +9,9 @@ import modelUtil.*;
 
 public class OrderRegisterControl {
 
+    // 1回の来店での合計注文金額上限 (300,000円)
+    private static final int MAX_TOTAL_AMOUNT = 300000;
+
     public OrderRegisterResult execute(Order order, Cart cart) {
         if (order == null || cart == null || cart.getItems().isEmpty()) {
             return new OrderRegisterResult(false, "カートが空です");
@@ -20,6 +23,20 @@ public class OrderRegisterControl {
 
         try {
             con = db.getConnection();
+            
+            // ★追加: 現在の注文合計金額を取得（DBから最新を取得）
+            OrderDao orderDao = new OrderDao();
+            Order currentOrder = orderDao.findById(order.getOrderId());
+            int currentTotal = (currentOrder != null) ? currentOrder.getTotalAmount() : 0;
+            
+            // 今回のカート金額
+            int cartTotal = cart.getTotalAmount();
+
+            // 上限チェック
+            if (currentTotal + cartTotal > MAX_TOTAL_AMOUNT) {
+                return new OrderRegisterResult(false, "注文金額の上限（300,000円）を超えています。");
+            }
+
             con.setAutoCommit(false); // トランザクション開始
 
             // 1. OrderItemテーブルへの登録
@@ -35,11 +52,10 @@ public class OrderRegisterControl {
             itemDao.insertBatch(con, dbItems, order.getOrderId().toString());
 
             // 2. OrderCountテーブル（分析用）の更新
-            AnalysisDao anaDao = new AnalysisDao(); // AnalysisDaoを使用
+            AnalysisDao anaDao = new AnalysisDao(); 
             String customerType = CustomerTypeLogic.determineType(order);
             
             for (CartItem ci : cart.getItems()) {
-                // 当日のレコードに対してインクリメント
                 anaDao.incrementCount(con, ci.getProduct().getProductId(), customerType, ci.getQuantity());
             }
 

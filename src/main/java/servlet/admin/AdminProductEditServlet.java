@@ -21,7 +21,11 @@ public class AdminProductEditServlet extends HttpServlet {
     
     // フォーム表示 (GET)
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("adminNameManagement") == null) {
+            response.sendRedirect(request.getContextPath() + "/Admin");
+            return;
+        }
         String id = request.getParameter("id");
         Product p = new Product();
         String mode = "insert";
@@ -48,8 +52,8 @@ public class AdminProductEditServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         
         // セッションチェック
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("adminUser") == null) {
+       HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("adminNameManagement") == null) {
             response.sendRedirect(request.getContextPath() + "/Admin");
             return;
         }

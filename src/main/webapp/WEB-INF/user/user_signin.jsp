@@ -1,5 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -44,9 +47,9 @@
         <img class="logo" src="${pageContext.request.contextPath}/image/logo/logo.svg?v=${applicationScope.logoVersion}" alt="ロゴ">
         <h2>ログイン</h2>
 
-        <form action="${pageContext.request.contextPath}User" method="post">
+        <form action="${pageContext.request.contextPath}/User" method="post">
             <div class="input-group">
-                <span class="input-label">ユーザー名</span>
+                <span class="input-label">メールアドレス</span>
                 <input type="text" name="name" placeholder="" required>
             </div>
 

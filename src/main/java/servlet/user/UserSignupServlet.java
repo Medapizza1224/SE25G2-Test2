@@ -30,8 +30,8 @@ public class UserSignupServlet extends HttpServlet {
         // --- バリデーション ---
         
         // ユーザー名: 半角8~32桁。英大小文字、数字、記号のうち2種類以上
-        if (userName == null || !isValidFormat(userName)) {
-            request.setAttribute("errorUserName", "半角8~32桁。英大小文字、数字、記号のうち2種類以上。");
+        if (userName == null || userName.isEmpty() || !userName.contains("@")) {
+            request.setAttribute("errorUserName", "正しいメールアドレスの形式で入力してください。");
             hasError = true;
         } else {
             // 重複チェック
@@ -107,7 +107,7 @@ public class UserSignupServlet extends HttpServlet {
             // 画面仕様に合わせて実装します。実運用ではメールアドレス入力欄が必須です。
             // ここではコンソール出力にとどめるか、仮にuserNameがメアド形式なら送信します。
             System.out.println("Auth URL: " + authUrl);
-            // MailUtil.sendAuthMail(userName, authUrl); // メアド形式でないとエラーになるためコメントアウト推奨
+            MailUtil.sendAuthMail(userName, authUrl); // メアド形式でないとエラーになるためコメントアウト推奨
 
             // そのまま登録完了画面風のJSPへ（メール確認画面）
             request.getRequestDispatcher("/WEB-INF/user/user_signup_sent.jsp").forward(request, response);
