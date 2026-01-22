@@ -1,6 +1,12 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ page import="util.AppConfig" %>
+<%
+    // ★設定を読み込み
+    AppConfig conf = AppConfig.load(application);
+    request.setAttribute("conf", conf);
+%>
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -8,6 +14,11 @@
     <meta charset="UTF-8">
     <title>テーブル設定</title>
     <style>
+        /* ★テーマカラー定義 */
+        :root {
+            --main-color: ${not empty conf.themeColor ? conf.themeColor : '#FF6900'};
+        }
+
         body { margin: 0; padding: 0; font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f5f5f5; color: #333; }
         .header { background: #333; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
         .header h1 { margin: 0; font-size: 20px; }
@@ -16,23 +27,24 @@
         .container { max-width: 900px; margin: 40px auto; padding: 0 20px; display: flex; flex-direction: column; gap: 40px; }
         
         .card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .card-title { font-size: 20px; font-weight: bold; border-left: 5px solid #FF6900; padding-left: 15px; margin-bottom: 25px; }
+        /* 左のアクセント線をテーマカラーに変更 */
+        .card-title { font-size: 20px; font-weight: bold; border-left: 5px solid var(--main-color); padding-left: 15px; margin-bottom: 25px; }
 
-        .new-form { display: flex; gap: 15px; align-items: flex-start; /* エラーが出ても高さが崩れないように */ }
+        .new-form { display: flex; gap: 15px; align-items: flex-start; }
         .input-wrapper { flex: 1; display: flex; flex-direction: column; }
         .input-box { padding: 15px; font-size: 18px; border: 2px solid #ddd; border-radius: 8px; font-weight: bold; width: 100%; box-sizing: border-box; }
         
+        /* 黒ボタンはそのまま維持 */
         .start-btn { background: #000; color: white; border: none; padding: 15px 40px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; height: 56px; }
         .start-btn:hover { opacity: 0.8; }
 
-        /* テーブルリストのスタイル省略 */
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 15px; background: #f9f9f9; color: #666; font-size: 14px; border-bottom: 2px solid #eee; }
         td { padding: 15px; border-bottom: 1px solid #eee; vertical-align: middle; }
         .table-no { font-size: 24px; font-weight: bold; color: #333; }
-        .recover-btn { background: #FF6900; color: white; border: none; padding: 10px 20px; border-radius: 30px; font-weight: bold; cursor: pointer; }
+        /* 復旧ボタンをテーマカラーに変更 */
+        .recover-btn { background: var(--main-color); color: white; border: none; padding: 10px 20px; border-radius: 30px; font-weight: bold; cursor: pointer; }
 
-        /* エラー表示スタイル */
         .error-text {
             color: #FF0000; font-size: 14px; font-weight: bold; margin-top: 8px; 
             display: flex; align-items: center; gap: 5px;
@@ -42,7 +54,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>注文端末セットアップ</h1>
+        <h1>注文端末：設定</h1>
         <a href="Order" class="logout-btn">ログアウト</a>
     </div>
 
@@ -56,7 +68,6 @@
                 <div class="input-wrapper">
                     <input type="text" name="tableNumber" class="input-box" placeholder="テーブル番号 (例: 0001)" required pattern="\d{4}" maxlength="4">
                     
-                    <!-- エラーメッセージ（入力欄の下） -->
                     <c:if test="${not empty error}">
                         <div class="error-text">
                             <img src="${pageContext.request.contextPath}/image/system/エラー.svg" class="error-icon" alt="!">

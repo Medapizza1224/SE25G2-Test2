@@ -26,6 +26,7 @@ public class OrderSessionFilter extends HttpFilter {
         "/CustomerCount",      // 人数選択
         "/ProductDetail",      // 商品詳細
         "/ShowQr",             // 決済QR表示
+        "/PaymentSelect",
         "/CheckPaymentStatus", // 決済状況確認API
         "/image/",             // 画像リソース
         "/css/",               // CSSリソース

@@ -109,6 +109,7 @@ public class UserPaymentServlet extends HttpServlet {
 
         } catch (Failure e) {
             // ★変更: 共通エラー画面へ遷移（残高不足、セキュリティコード違いなど）
+            request.setAttribute("errorTitle", "決済エラー");
             request.setAttribute("errorMessage", e.getMessage());
             
             // 決済画面に戻れるようにURLを構築

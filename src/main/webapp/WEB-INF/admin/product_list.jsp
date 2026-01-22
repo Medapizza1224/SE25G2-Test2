@@ -24,7 +24,6 @@
         a { text-decoration: none; color: inherit; }
 
         .sidebar { width: 240px; background-color: #fff; border-right: 1px solid #ddd; display: flex; flex-direction: column; padding-top: 20px; flex-shrink: 0; }
-        .brand { font-size: 20px; font-weight: bold; padding: 0 25px 30px; display: flex; align-items: center; gap: 10px; }
         .sidebar-item { display: flex; align-items: center; padding: 15px 25px; color: #666; font-weight: bold; font-size: 16px; transition: 0.2s; }
         .sidebar-item:hover { background-color: #f9f9f9; color: #333; }
         .sidebar-item.active { background-color: #fff5f0; color: var(--main-color); border-right: 4px solid var(--main-color); }
@@ -46,11 +45,20 @@
         .status-ok { color: #00A0E9; font-weight: bold; font-size: 12px; }
         .status-ng { color: #FF0000; font-weight: bold; font-size: 12px; }
         .edit-btn { background: #333; color: white; padding: 6px 15px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        /* ブランド部分 */
+        .brand { 
+            padding: 0 25px 30px; 
+            display: flex; align-items: center; justify-content: flex-start;
+        }
+        /* ロゴ画像 */
+        .brand-logo { height: 35px; width: auto; object-fit: contain; }
     </style>
 </head>
 <body>
     <div class="sidebar">
-        <div class="brand">🐄 焼肉〇〇</div>
+        <div class="brand">
+            <img src="${pageContext.request.contextPath}/image/logo/logo.svg?v=${applicationScope.logoVersion}" class="brand-logo" alt="ロゴ">
+        </div>
         <a href="AdminKitchen" class="sidebar-item">
             <img src="${pageContext.request.contextPath}/image/system/icon_kitchen.svg" class="icon-img"> 注文状況
         </a>

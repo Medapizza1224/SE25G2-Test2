@@ -9,7 +9,14 @@ public class MailUtil {
     private static final String MY_EMAIL = "inuda081012@gmail.com";
     private static final String MY_APP_PASSWORD = "jdue nbeh zygq jwav"; // 16桁のアプリパスワード
 
-    public static void sendAuthMail(String toEmail, String authUrl) throws Exception {
+    // 既存メソッド（互換性のため残すか、新しいメソッドに委譲）
+    public static void sendMail(String toEmail, String subject, String body) throws Exception {
+        // デフォルトの送信者名
+        sendMail(toEmail, subject, body, "焼肉〇〇 システム");
+    }
+
+    // ★追加: 差出人名を指定して送信するメソッド
+    public static void sendMail(String toEmail, String subject, String body, String senderName) throws Exception {
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
@@ -24,15 +31,11 @@ public class MailUtil {
         });
 
         Message message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(MY_EMAIL, "焼肉〇〇 システム"));
+        // ★修正: 指定された senderName を使用して From を設定
+        message.setFrom(new InternetAddress(MY_EMAIL, senderName));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-        message.setSubject("【焼肉〇〇】新規登録の認証をお願いします");
-
-        String content = "以下のリンクをクリックして、登録を完了してください。\n\n"
-                       + authUrl + "\n\n"
-                       + "※このリンクの有効期限があります。";
-        
-        message.setText(content);
+        message.setSubject(subject);
+        message.setText(body);
 
         Transport.send(message);
     }

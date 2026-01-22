@@ -4,7 +4,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>端末ログイン</title>
+    <title>注文端末：ログイン</title>
     <style>
         body { font-family: "Yu Gothic", sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #fff; }
         .container { width: 300px; display: flex; flex-direction: column; align-items: center; }

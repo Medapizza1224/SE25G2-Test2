@@ -37,10 +37,18 @@ public class UserDao {
                 User user = new User();
                 user.setUserId(UUID.fromString(rs.getString("user_id")));
                 user.setUserName(rs.getString("user_name"));
+                // パスワードやセキュリティコードのハッシュ値も必要に応じて取得
+                user.setUserPassword(rs.getString("user_password"));
+                user.setSecurityCode(rs.getString("security_code"));
+                
                 user.setBalance(rs.getInt("balance"));
                 user.setPoint(rs.getInt("point"));
-                user.setSecurityCode(rs.getString("security_code"));
+                user.setLoginAttemptCount(rs.getInt("login_attempt_count"));
                 user.setLockout(rs.getBoolean("is_lockout"));
+                
+                // 秘密鍵(暗号化済み)は署名時に必要
+                // user.setEncryptedPrivateKey(...) 
+                
                 return user;
             }
             return null;
@@ -80,6 +88,75 @@ public class UserDao {
     }
 
     /**
+     * ★追加: 認証失敗時の処理
+     * 試行回数を+1し、3回以上ならロックアウトする。
+     * @return 更新後の試行回数
+     */
+    public int incrementLoginAttempt(UUID userId) throws DaoException {
+        Connection con = null;
+        int newCount = 0;
+        try {
+            con = dbHolder.getConnection();
+            con.setAutoCommit(false);
+
+            // 1. カウントアップ
+            String sqlUpd = "UPDATE users SET login_attempt_count = login_attempt_count + 1 WHERE user_id = ?";
+            try (PreparedStatement ps = con.prepareStatement(sqlUpd)) {
+                ps.setString(1, userId.toString());
+                ps.executeUpdate();
+            }
+
+            // 2. 現在のカウントを取得
+            String sqlSel = "SELECT login_attempt_count FROM users WHERE user_id = ?";
+            try (PreparedStatement ps = con.prepareStatement(sqlSel)) {
+                ps.setString(1, userId.toString());
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    newCount = rs.getInt("login_attempt_count");
+                }
+            }
+
+            // 3. 3回以上ならロックアウト
+            if (newCount >= 3) {
+                String sqlLock = "UPDATE users SET is_lockout = TRUE WHERE user_id = ?";
+                try (PreparedStatement ps = con.prepareStatement(sqlLock)) {
+                    ps.setString(1, userId.toString());
+                    ps.executeUpdate();
+                }
+            }
+
+            con.commit();
+            return newCount;
+
+        } catch (Exception e) {
+            if (con != null) try { con.rollback(); } catch (SQLException ex) {}
+            throw new DaoException("認証失敗処理エラー", e);
+        } finally {
+            connectionCloser.closeConnection(con);
+        }
+    }
+
+    /**
+     * ★追加: 認証成功時の処理
+     * 試行回数を0にリセットする
+     */
+    public void resetLoginAttempt(UUID userId) throws DaoException {
+        Connection con = null;
+        try {
+            con = dbHolder.getConnection();
+            String sql = "UPDATE users SET login_attempt_count = 0 WHERE user_id = ?";
+            try (PreparedStatement ps = con.prepareStatement(sql)) {
+                ps.setString(1, userId.toString());
+                ps.executeUpdate();
+            }
+        } catch (Exception e) {
+            throw new DaoException("認証リセットエラー", e);
+        } finally {
+            connectionCloser.closeConnection(con);
+        }
+    }
+
+    /**
      * 決済処理（実ロジック版：署名・ハッシュ計算あり）
      */
     public int userPayment(UUID userId, UUID orderId, int amount, String inputSecurityCode) throws DaoException {
@@ -98,6 +175,7 @@ public class UserDao {
             if (!rsUser.next()) throw new DaoException("ユーザー不在");
             
             // 2. セキュリティコード検証
+            // Control側でハッシュ化されたコードが渡されてくる前提
             String dbCode = rsUser.getString("security_code");
             if (!inputSecurityCode.equals(dbCode)) {
                 throw new DaoException("認証失敗: セキュリティコードが違います");
@@ -331,7 +409,7 @@ public class UserDao {
             ps.setString(1, user.getUserId().toString());
             ps.setString(2, user.getUserName());
             ps.setString(3, user.getUserPassword());
-            ps.setString(4, user.getSecurityCode());
+            ps.setString(4, user.getSecurityCode()); // ハッシュ化済みを想定
             ps.setInt(5, user.getBalance());
             ps.setInt(6, user.getPoint());
             

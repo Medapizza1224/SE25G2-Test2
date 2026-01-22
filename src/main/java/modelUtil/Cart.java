@@ -21,6 +21,12 @@ public class Cart {
     public int getTotalAmount() {
         return items.stream().mapToInt(CartItem::getSubTotal).sum();
     }
+    
+    // ★追加: カート内の商品総数を取得
+    public int getTotalQuantity() {
+        return items.stream().mapToInt(CartItem::getQuantity).sum();
+    }
+
     public List<CartItem> getItems() { return items; }
     public void clear() { items.clear(); }
 }

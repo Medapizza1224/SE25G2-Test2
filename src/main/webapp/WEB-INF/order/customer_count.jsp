@@ -11,7 +11,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>人数選択</title>
+    <title>注文端末：人数</title>
     <style>
         /* =========================================
            基本スタイル (PC向けにサイズアップ)

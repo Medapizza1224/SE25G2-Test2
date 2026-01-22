@@ -130,6 +130,29 @@ public class OrderDao {
             connectionCloser.closeConnection(con);
         }
     }
+    /**
+     * 指定した注文IDに紐づく、注文済みの商品総数を取得する
+     */
+    public int countTotalItems(UUID orderId) throws DaoException {
+        Connection con = null;
+        try {
+            con = dbHolder.getConnection();
+            // order_itemsテーブルのquantityを合計する
+            String sql = "SELECT SUM(quantity) as total_qty FROM order_items WHERE order_id = ?";
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, orderId.toString());
+            ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("total_qty");
+            }
+            return 0;
+        } catch (Exception e) {
+            throw new DaoException("注文数カウントエラー", e);
+        } finally {
+            connectionCloser.closeConnection(con);
+        }
+    }
 
     private int calculateTotalAmount(Connection con, UUID orderId) throws Exception {
         String sql = "SELECT SUM(price * quantity) as total FROM order_items WHERE order_id = ?";

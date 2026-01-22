@@ -1,13 +1,18 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ page import="util.AppConfig" %>
+<%
+    AppConfig conf = AppConfig.load(application);
+    request.setAttribute("conf", conf);
+%>
 <c:if test="${empty sessionScope.user}">
     <c:redirect url="/User" />
 </c:if>
 <%
-    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1
-    response.setHeader("Pragma", "no-cache"); // HTTP 1.0
-    response.setDateHeader("Expires", 0); // Proxies
+    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    response.setHeader("Pragma", "no-cache");
+    response.setDateHeader("Expires", 0);
 %>
 
 <!DOCTYPE html>
@@ -18,16 +23,18 @@
     <title>チャージ</title>
     <script>
         window.addEventListener('pageshow', function(event) {
-            // "event.persisted" は「キャッシュから表示されたか」のフラグ
             if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
-                window.location.reload(); // リロードしてサーバーのチェックを走らせる
+                window.location.reload();
             }
         });
     </script>
     <style>
+        :root {
+            --main-color: ${not empty conf.themeColor ? conf.themeColor : '#FF6900'};
+        }
         body {
             font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
-            background-color: #F8F7F5; /* SVGの背景色 */
+            background-color: #F8F7F5;
             margin: 0;
             display: flex;
             justify-content: center;
@@ -35,7 +42,7 @@
         }
         .container {
             width: 100%;
-            max-width: 420px; /* SVGの幅感に合わせて調整 */
+            max-width: 420px;
             background: transparent;
             min-height: 100vh;
             display: flex;
@@ -43,10 +50,6 @@
             position: relative;
         }
         
-        /* 青いバーはSVGデザインにないため非表示 */
-        .blue-bar { display: none; }
-
-        /* ヘッダー: SVGの上部エリアを再現 */
         .header {
             display: flex;
             justify-content: space-between;
@@ -56,160 +59,92 @@
             border: none;
             margin-bottom: 10px;
         }
-        .header a {
+        /* アイコン画像用スタイル */
+        .icon-img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+        /* リンクスタイル */
+        .home-link {
             text-decoration: none;
             color: #333;
-            font-size: 24px;
-            width: 40px;
-            height: 40px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
         }
-        .header-title { 
-            font-weight: bold; 
-            font-size: 18px; 
-            letter-spacing: 1px;
-        }
-        /* アイコンの見た目をSVG風に（絵文字をCSSで調整） */
-        .icon-home::before { content: "‹"; font-size: 40px; font-weight: 300; position: relative; top: -2px; }
-        .icon-close::before { content: "×"; font-size: 32px; font-weight: 300; }
-        
-        /* 元のアイコン・テキストを隠すハック */
-        .header a div { display: none; }
-        .header a.home-link::after { content: "‹"; font-size: 40px; font-family: sans-serif; font-weight: lighter; margin-top: -5px; margin-left: -10px;}
-        .header a.logout-link::after { content: "×"; font-size: 30px; font-family: sans-serif; font-weight: lighter; }
 
+        .header-title { font-weight: bold; font-size: 18px; letter-spacing: 1px; }
 
-        /* コンテンツエリア: SVGの白いカード部分 */
         .content { 
-            background: white;
-            margin: 0 15px 30px 15px;
-            padding: 30px 25px;
-            border-radius: 24px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            flex: 1;
+            background: white; margin: 0 15px 30px 15px; padding: 30px 25px;
+            border-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); flex: 1;
         }
 
-        /* 残高カード: SVGのオレンジ部分 */
         .balance-card {
-            background-color: #FF6900;
+            background-color: var(--main-color);
             color: white;
             border-radius: 16px;
             padding: 25px;
             margin-bottom: 30px;
-            box-shadow: 0 5px 15px rgba(255, 105, 0, 0.3);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             position: relative;
         }
         .balance-label { font-size: 13px; margin-bottom: 8px; opacity: 0.9; }
         .balance-amount { font-size: 32px; font-weight: bold; letter-spacing: 0.5px; font-family: Arial, sans-serif; }
 
-        /* 入力エリア */
-        .label { 
-            font-weight: bold; 
-            margin-bottom: 12px; 
-            display: block; 
-            font-size: 15px; 
-            color: #333;
-        }
+        .label { font-weight: bold; margin-bottom: 12px; display: block; font-size: 15px; color: #333; }
         .input-box {
-            width: 100%;
-            padding: 12px;
-            font-size: 28px;
-            font-weight: bold;
-            border: none;
-            border-bottom: 1px solid #ddd;
-            border-radius: 0;
-            text-align: right;
-            box-sizing: border-box;
-            margin-bottom: 25px;
-            background: transparent;
-            font-family: Arial, sans-serif;
-            color: #333;
+            width: 100%; padding: 12px; font-size: 28px; font-weight: bold;
+            border: none; border-bottom: 1px solid #ddd; border-radius: 0;
+            text-align: right; box-sizing: border-box; margin-bottom: 25px;
+            background: transparent; font-family: Arial, sans-serif; color: #333;
         }
-        .input-box:focus { outline: none; border-bottom: 2px solid #FF6900; }
+        .input-box:focus { outline: none; border-bottom: 2px solid var(--main-color); }
 
-        /* クイックボタン: SVGのグレー/赤ボタン */
-        .quick-buttons {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 40px;
-        }
+        .quick-buttons { display: flex; gap: 12px; margin-bottom: 40px; }
         .q-btn {
-            flex: 1;
-            padding: 14px 0;
-            background-color: #F5F5F5; /* SVGの非選択色 #F8F7F5に近いグレー */
-            border: 1px solid #F5F5F5;
-            color: #999;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s;
+            flex: 1; padding: 14px 0; background-color: #F5F5F5;
+            border: 1px solid #F5F5F5; color: #999; border-radius: 8px;
+            font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; transition: all 0.2s;
         }
-        /* 選択状態: SVGの真ん中のボタンスタイル */
         .q-btn.selected {
-            background-color: #FFF5F5; /* 薄い赤 */
-            color: #FF0000;
-            border: 2px solid #FF0000;
-            position: relative; /* ボーダー分ずれないように調整 */
+            background-color: #FFF5F5;
+            color: var(--main-color);
+            border: 2px solid var(--main-color);
+            position: relative;
         }
 
-        /* チャージ方法: SVGの下部カード */
         .method-box {
-            border: 2px solid #FF0000;
-            background-color: #FFF5F5; /* 薄い赤背景 */
-            border-radius: 12px;
-            padding: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 50px;
+            border: 2px solid var(--main-color);
+            background-color: #FFF5F5;
+            border-radius: 12px; padding: 18px;
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 50px;
         }
         .card-icon { font-size: 24px; margin-right: 15px; }
         .card-info { flex: 1; font-weight: bold; font-size: 15px; color: #333; }
         .card-sub { font-size: 12px; color: #666; display: block; margin-top: 2px; }
         .check-circle {
-            width: 22px; height: 22px;
-            border-radius: 50%;
-            background-color: #FF0000; /* 赤丸 */
+            width: 22px; height: 22px; border-radius: 50%;
+            background-color: var(--main-color);
             position: relative;
         }
-        /* --- 修正後（追加） --- */
-        .refresh-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-            opacity: 0.8;
-            cursor: pointer;
-            padding: 0;
-            line-height: 1;
-            transition: transform 0.3s;
-            z-index: 10;
-        }
-        .refresh-btn:active {
-            transform: rotate(360deg);
-            opacity: 1;
-        }
 
-        /* チャージボタン: SVGの一番下の赤いボタン */
+        .refresh-btn {
+            position: absolute; top: 20px; right: 20px; background: transparent;
+            border: none; color: white; font-size: 24px; font-weight: bold; opacity: 0.8;
+            cursor: pointer; padding: 0; line-height: 1; transition: transform 0.3s; z-index: 10;
+        }
+        .refresh-btn:active { transform: rotate(360deg); opacity: 1; }
+
         .charge-btn {
-            width: 100%;
-            padding: 20px;
-            background-color: #FF6900;
-            color: white;
-            border: none;
-            border-radius: 35px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 8px 20px rgba(255, 0, 0, 0.3);
+            width: 100%; padding: 20px;
+            background-color: var(--main-color);
+            color: white; border: none; border-radius: 35px;
+            font-size: 18px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
             transition: opacity 0.2s;
         }
         .charge-btn:active { opacity: 0.8; }
@@ -219,66 +154,51 @@
 </head>
 <body>
     <div class="container">
-        <!-- 青いバー (SVGに無いため非表示) -->
-        <div class="blue-bar">チャージ画面</div>
-
-        <!-- ヘッダー -->
         <div class="header">
-            <!-- 戻るボタンとして機能させる -->
             <c:choose>
                 <c:when test="${param.returnTo == 'payment'}">
                     <a href="${pageContext.request.contextPath}/UserPayment?orderId=${param.orderId}" class="home-link">
-                        <div>↩</div>
+                        <div style="font-size: 20px;">↩</div>
                         <div>戻る</div>
                     </a>
                 </c:when>
                 <c:otherwise>
                     <a href="${pageContext.request.contextPath}/user_home" class="home-link">
-                        <div>🏠</div>
-                        <div>ホーム</div>
+                        <img src="${pageContext.request.contextPath}/image/system/ホーム.svg" class="icon-img" alt="ホーム">
+                        <div style="margin-top:2px;">ホーム</div>
                     </a>
                 </c:otherwise>
             </c:choose>
-            
             <div class="header-title">チャージ</div>
-            
-            <!-- 閉じるボタンとして機能させる -->
             <div style="width: 40px;"></div>
         </div>
 
         <div class="content">
-            <!-- 残高表示 -->
             <div class="balance-card">
                 <div class="balance-label">残高</div>
                 <div class="balance-amount">¥ <fmt:formatNumber value="${user.balance}" /></div>
-                <!-- ボタンを追加: クリックでページ再読み込み -->
                 <button type="button" class="refresh-btn" onclick="location.reload()" title="残高を更新">↻</button>
             </div>
 
-            <!-- エラーメッセージ -->
             <c:if test="${not empty error}">
                 <div class="error-msg">${error}</div>
             </c:if>
 
             <form action="${pageContext.request.contextPath}/UserCharge" method="post">
-                <!-- 追加: 戻り先情報の維持 -->
                 <input type="hidden" name="returnTo" value="${param.returnTo}">
                 <input type="hidden" name="orderId" value="${param.orderId}">
-                <!-- チャージ金額入力 -->
                 <label class="label">チャージ金額</label>
                 <input type="number" id="chargeInput" name="amount" class="input-box" value="5000" placeholder="¥ 0">
 
-                <!-- クイックボタン -->
                 <div class="quick-buttons">
                     <button type="button" class="q-btn" onclick="selectAmount(this, 1000)">+1,000</button>
                     <button type="button" class="q-btn selected" onclick="selectAmount(this, 5000)">+5,000</button>
                     <button type="button" class="q-btn" onclick="selectAmount(this, 10000)">+10,000</button>
                 </div>
 
-                <!-- チャージ方法 (SVGのデザインに合わせて固定表示) -->
                 <label class="label">チャージ方法</label>
                 <div class="method-box">
-                    <div class="card-icon">💳</div> <!-- SVG内のVISAロゴ等の代用 -->
+                    <div class="card-icon">💳</div>
                     <div class="card-info">
                         クレジットカード
                         <span class="card-sub">VISA **** 5678</span>
@@ -286,7 +206,6 @@
                     <div class="check-circle"></div>
                 </div>
 
-                <!-- ボタン -->
                 <button type="submit" class="charge-btn">チャージする</button>
             </form>
         </div>
@@ -294,41 +213,11 @@
 
     <script>
         const input = document.getElementById('chargeInput');
-
-        // ロジックは変えずに、SVGの見た目（選択状態のスタイル切り替え）を実現するための処理を追加
         function selectAmount(btn, val) {
-            // 金額セット (元のロジック: setAmount相当の動作 + スタイル更新)
-            // 元のコードには addAmount と setAmount があったが、
-            // SVGのデザイン（3つの選択肢から選ぶUI）に合わせるため、ここではセット動作を基本とする。
-            // ※もし「加算」ロジックが必要ならここを修正してください。今回はSVGのラジオボタン的な見た目を優先してセットにします。
-            
-            // 元のロジックを保持するため、既存の動きを踏襲しつつ値をセット
             input.value = val;
-            
-            // 全ボタンの選択状態を解除
             document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('selected'));
-            // クリックされたボタンを選択状態に
             btn.classList.add('selected');
         }
-
-        // 互換性のため元の関数名も残すが、今回はUIに合わせて selectAmount をメインで使用
-        function addAmount(val) {
-            let current = parseInt(input.value) || 0;
-            input.value = current + val;
-            // 自由入力になった場合はボタン選択を外す
-            document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('selected'));
-        }
-
-        function setAmount(val) {
-            input.value = val;
-            updateBtnStyle(val);
-        }
-
-        function updateBtnStyle(val) {
-            // 値に応じてボタンのスタイルを更新する処理があればここに記述
-        }
-        
-        // 入力欄を手動変更した時の処理
         input.addEventListener('input', function() {
             document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('selected'));
         });

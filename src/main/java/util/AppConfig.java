@@ -9,16 +9,21 @@ import jakarta.servlet.ServletContext;
 public class AppConfig implements Serializable {
     private static final long serialVersionUID = 1L;
     
-    // 設定項目
-    private String themeColor = "#FF6900"; // デフォルト: オレンジ
-    private String mailSubject = "【焼肉〇〇】新規登録の認証をお願いします";
+    // ★追加: 店舗名 (デフォルト値つき)
+    private String storeName = "焼肉〇〇";
+
+    private String themeColor = "#FF6900";
+    private String mailSubject = "【{store}】新規登録の認証をお願いします"; // {store}で置換可能に
     private String mailBody = "以下のリンクをクリックして、登録を完了してください。\n\n{link}\n\n※このリンクの有効期限があります。";
+    
     private List<Category> categories = new ArrayList<>();
+    // ★追加: 決済方法リスト
+    private List<PaymentMethod> paymentMethods = new ArrayList<>();
 
     // 内部クラス: カテゴリ
     public static class Category implements Serializable {
         private String name;
-        private String icon; // ファイル名 (例: cat_meat.svg)
+        private String icon;
         public Category(String name, String icon) {
             this.name = name;
             this.icon = icon;
@@ -27,15 +32,28 @@ public class AppConfig implements Serializable {
         public String getIcon() { return icon; }
     }
 
-    // コンストラクタ（初期値：ファイル名に変更）
+    // ★追加: 決済方法クラス
+    public static class PaymentMethod implements Serializable {
+        private String name;
+        private String icon; // アイコンファイル名
+        public PaymentMethod(String name, String icon) {
+            this.name = name;
+            this.icon = icon;
+        }
+        public String getName() { return name; }
+        public String getIcon() { return icon; }
+    }
+
     public AppConfig() {
+        // 初期データ
         categories.add(new Category("肉", "cat_meat.svg"));
         categories.add(new Category("ホルモン", "cat_hormone.svg"));
         categories.add(new Category("サイド", "cat_side.svg"));
         categories.add(new Category("ドリンク", "cat_drink.svg"));
+        
+        // ★追加: デフォルト決済方法
+        paymentMethods.add(new PaymentMethod("QRコード決済", "pay_qr.svg"));
     }
-
-    // --- 読み書きロジック ---
 
     public static AppConfig load(ServletContext context) {
         String path = context.getRealPath("/WEB-INF/data/config.json");
@@ -69,14 +87,15 @@ public class AppConfig implements Serializable {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // アプリケーションスコープ更新
         context.setAttribute("appConfig", this);
     }
 
-    // --- 簡易JSON処理 ---
     private String toJson() {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
+        // ★追加
+        sb.append("\"storeName\":\"").append(escape(storeName)).append("\",");
+        
         sb.append("\"themeColor\":\"").append(escape(themeColor)).append("\",");
         sb.append("\"mailSubject\":\"").append(escape(mailSubject)).append("\",");
         sb.append("\"mailBody\":\"").append(escape(mailBody)).append("\",");
@@ -84,11 +103,22 @@ public class AppConfig implements Serializable {
         sb.append("\"categories\":[");
         for (int i = 0; i < categories.size(); i++) {
             Category c = categories.get(i);
-            sb.append("{\"name\":\"").append(escape(c.name)).append("\",");
-            sb.append("\"icon\":\"").append(escape(c.icon)).append("\"}");
+            sb.append("{\"name\":\"").append(escape(c.getName())).append("\",");
+            sb.append("\"icon\":\"").append(escape(c.getIcon())).append("\"}");
             if (i < categories.size() - 1) sb.append(",");
         }
+        sb.append("],"); // カンマ追加
+
+        // ★追加: 決済方法のJSON化
+        sb.append("\"paymentMethods\":[");
+        for (int i = 0; i < paymentMethods.size(); i++) {
+            PaymentMethod p = paymentMethods.get(i);
+            sb.append("{\"name\":\"").append(escape(p.getName())).append("\",");
+            sb.append("\"icon\":\"").append(escape(p.getIcon())).append("\"}");
+            if (i < paymentMethods.size() - 1) sb.append(",");
+        }
         sb.append("]");
+        
         sb.append("}");
         return sb.toString();
     }
@@ -96,23 +126,44 @@ public class AppConfig implements Serializable {
     private static AppConfig parseJson(String json) {
         AppConfig config = new AppConfig();
         try {
+            // ★追加
+            String sn = extract(json, "storeName");
+            if (!sn.isEmpty()) config.setStoreName(sn);
+
             config.setThemeColor(extract(json, "themeColor"));
             config.setMailSubject(extract(json, "mailSubject"));
             config.setMailBody(extract(json, "mailBody"));
             
-            config.categories.clear();
+            // カテゴリ
             int catStart = json.indexOf("\"categories\":[");
             if (catStart != -1) {
+                config.getCategories().clear();
                 int catEnd = json.indexOf("]", catStart);
                 String catJson = json.substring(catStart, catEnd + 1);
-                
                 String[] items = catJson.split("\\},\\{");
                 for (String item : items) {
                     String name = extract(item, "name");
                     String icon = extract(item, "icon");
-                    if (!name.isEmpty()) config.categories.add(new Category(name, icon));
+                    if (!name.isEmpty()) config.getCategories().add(new Category(name, icon));
                 }
             }
+
+            // ★追加: 決済方法
+            int payStart = json.indexOf("\"paymentMethods\":[");
+            if (payStart != -1) {
+                config.getPaymentMethods().clear(); // ★JSONにデータがある場合のみクリアして読み込む
+                
+                int payEnd = json.indexOf("]", payStart);
+                String payJson = json.substring(payStart, payEnd + 1);
+                String[] items = payJson.split("\\},\\{");
+                for (String item : items) {
+                    String name = extract(item, "name");
+                    String icon = extract(item, "icon");
+                    if (!name.isEmpty()) config.getPaymentMethods().add(new PaymentMethod(name, icon));
+                }
+            }
+            // JSONにデータがない場合は、コンストラクタで設定された初期値（QRコード決済）が維持されます
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -150,6 +201,9 @@ public class AppConfig implements Serializable {
     }
 
     // Getter / Setter
+    public String getStoreName() { return storeName; }
+    public void setStoreName(String storeName) { this.storeName = storeName; }
+
     public String getThemeColor() { return themeColor; }
     public void setThemeColor(String themeColor) { this.themeColor = themeColor; }
     public String getMailSubject() { return mailSubject; }
@@ -158,4 +212,7 @@ public class AppConfig implements Serializable {
     public void setMailBody(String mailBody) { this.mailBody = mailBody; }
     public List<Category> getCategories() { return categories; }
     public void setCategories(List<Category> categories) { this.categories = categories; }
+    // ★追加
+    public List<PaymentMethod> getPaymentMethods() { return paymentMethods; }
+    public void setPaymentMethods(List<PaymentMethod> paymentMethods) { this.paymentMethods = paymentMethods; }
 }

@@ -39,14 +39,20 @@ public class OrderItemDao {
         }
     }
 
-    // 注文IDに紐づく履歴取得
+    // 注文IDに紐づく履歴取得（商品情報結合版）
     public List<OrderItem> findByOrderId(String orderId) throws DaoException {
         List<OrderItem> list = new ArrayList<>();
         Connection con = null;
         try {
             con = dataSourceHolder.getConnection();
-            // 商品名を表示したい場合は Products テーブルと結合する推奨ですが、今回はEntityに合わせてシンプルにします
-            String sql = "SELECT * FROM order_items WHERE order_id = ? ORDER BY add_order_at DESC";
+            
+            // ★修正: productsテーブルと結合
+            String sql = "SELECT oi.*, p.product_name, p.image " +
+                         "FROM order_items oi " +
+                         "JOIN products p ON oi.product_id = p.product_id " +
+                         "WHERE oi.order_id = ? " +
+                         "ORDER BY oi.add_order_at DESC";
+                         
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, orderId);
             ResultSet rs = ps.executeQuery();
@@ -56,6 +62,11 @@ public class OrderItemDao {
                 item.setOrderItemId(UUID.fromString(rs.getString("order_item_id")));
                 item.setOrderId(UUID.fromString(rs.getString("order_id")));
                 item.setProductId(rs.getString("product_id"));
+                
+                // ★追加: 商品情報セット
+                item.setProductName(rs.getString("product_name"));
+                item.setImage(rs.getString("image"));
+                
                 item.setQuantity(rs.getInt("quantity"));
                 item.setPrice(rs.getInt("price"));
                 item.setAddOrderAt(rs.getTimestamp("add_order_at"));
@@ -71,16 +82,18 @@ public class OrderItemDao {
         return list;
     }
 
-    // キッチン用: 未提供('調理中')リスト取得 (商品名も結合して取得)
+    // キッチン用: 未提供('調理中')リスト取得 (商品名、テーブル番号も結合して取得)
     public List<OrderItem> findUnserved() throws DaoException {
         List<OrderItem> list = new ArrayList<>();
         Connection con = null;
         try {
             con = dataSourceHolder.getConnection();
-            // productsテーブルと結合して商品名(product_name)を取得
-            String sql = "SELECT oi.*, p.product_name " +
+            
+            // ★修正: ordersテーブルもJOINして table_number を取得
+            String sql = "SELECT oi.*, p.product_name, o.table_number " +
                          "FROM order_items oi " +
                          "JOIN products p ON oi.product_id = p.product_id " +
+                         "JOIN orders o ON oi.order_id = o.order_id " +  // 追加
                          "WHERE oi.order_status = '調理中' " +
                          "ORDER BY oi.add_order_at ASC";
             
@@ -90,9 +103,13 @@ public class OrderItemDao {
             while (rs.next()) {
                 OrderItem item = new OrderItem();
                 item.setOrderItemId(UUID.fromString(rs.getString("order_item_id")));
-                item.setOrderId(UUID.fromString(rs.getString("order_id"))); // テーブル番号表示用に必要ならOrdersとも結合
+                item.setOrderId(UUID.fromString(rs.getString("order_id")));
                 item.setProductId(rs.getString("product_id"));
-                item.setProductName(rs.getString("product_name")); // 結合した商品名
+                item.setProductName(rs.getString("product_name")); 
+                
+                // ★追加: 取得したテーブル番号をセット
+                item.setTableNumber(rs.getString("table_number"));
+
                 item.setQuantity(rs.getInt("quantity"));
                 item.setAddOrderAt(rs.getTimestamp("add_order_at"));
                 item.setOrderStatus(rs.getString("order_status"));

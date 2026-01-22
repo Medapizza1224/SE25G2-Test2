@@ -22,7 +22,7 @@
         .error-card {
             background: #fff;
             width: 90%;
-            max-width: 400px;
+            max-width: 450px; /* 少し幅を広げる */
             padding: 40px 30px;
             border-radius: 16px;
             text-align: center;
@@ -36,14 +36,21 @@
         .error-title {
             font-size: 20px;
             font-weight: bold;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             color: #FF3B30; /* エラー色の赤 */
         }
         .error-message {
             font-size: 16px;
-            line-height: 1.6;
+            line-height: 1.8;
             margin-bottom: 40px;
-            color: #555;
+            color: #444;
+            /* ★追加: 改行コードを反映させ、長文を折り返す */
+            white-space: pre-wrap; 
+            text-align: left;     /* 左寄せで読みやすく */
+            background-color: #fafafa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #eee;
         }
         .btn {
             display: inline-block;
@@ -61,16 +68,16 @@
 </head>
 <body>
     <div class="error-card">
-        <!-- エラーアイコン (既存のシステム画像を使用) -->
+        <!-- エラーアイコン -->
         <img src="${pageContext.request.contextPath}/image/system/エラー.svg" class="icon" alt="Error">
         
-        <div class="error-title">エラーが発生しました</div>
-        
-        <div class="error-message">
-            <c:out value="${errorMessage}" default="予期せぬエラーが発生しました。" />
+        <div class="error-title">
+            <c:out value="${errorTitle}" default="エラー" />
         </div>
+        
+        <div class="error-message"><c:out value="${errorMessage}" default="予期せぬエラーが発生しました。" /></div>
 
-        <!-- 戻るボタン (遷移先はServletから指定) -->
+        <!-- 戻るボタン -->
         <a href="${pageContext.request.contextPath}${nextUrl}" class="btn">
             <c:out value="${nextLabel}" default="戻る" />
         </a>

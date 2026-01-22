@@ -89,6 +89,7 @@ public class UserChargeServlet extends HttpServlet {
 
         } catch (Failure e) {
             // エラー時: 共通エラー画面へ遷移
+            request.setAttribute("errorTitle", "注文エラー");
             request.setAttribute("errorMessage", e.getMessage());
             
             // エラーから戻る際も、パラメータを維持できるようにURLを構築

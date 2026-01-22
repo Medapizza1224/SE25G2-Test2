@@ -29,6 +29,7 @@ public class OrderSubmitServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/OrderComplete");
         } else {
             // ★変更: 共通エラー画面へ遷移
+            request.setAttribute("errorTitle", "注文エラー");
             request.setAttribute("errorMessage", result.getMessage());
             request.setAttribute("nextUrl", "/OrderHome"); // メニューへ戻る
             request.setAttribute("nextLabel", "メニューへ戻る");

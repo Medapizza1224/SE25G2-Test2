@@ -44,6 +44,7 @@ public class UserLoginServlet extends HttpServlet {
 
         } catch (Failure e) {
             // ★変更: 共通エラー画面へ遷移
+            request.setAttribute("errorTitle", "ログインエラー");
             request.setAttribute("errorMessage", e.getMessage());
             request.setAttribute("nextUrl", "/User"); // 戻る先
             request.setAttribute("nextLabel", "ログイン画面へ戻る");

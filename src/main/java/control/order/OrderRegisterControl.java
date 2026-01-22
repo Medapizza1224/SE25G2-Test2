@@ -9,8 +9,8 @@ import modelUtil.*;
 
 public class OrderRegisterControl {
 
-    // 1回の来店での合計注文金額上限 (300,000円)
-    private static final int MAX_TOTAL_AMOUNT = 300000;
+    // ★変更: 注文個数の上限 (50個)
+    private static final int MAX_TOTAL_QUANTITY = 50;
 
     public OrderRegisterResult execute(Order order, Cart cart) {
         if (order == null || cart == null || cart.getItems().isEmpty()) {
@@ -22,24 +22,31 @@ public class OrderRegisterControl {
         Connection con = null;
 
         try {
-            con = db.getConnection();
-            
-            // ★追加: 現在の注文合計金額を取得（DBから最新を取得）
+            // 1. 現在の注文済み個数を取得
             OrderDao orderDao = new OrderDao();
-            Order currentOrder = orderDao.findById(order.getOrderId());
-            int currentTotal = (currentOrder != null) ? currentOrder.getTotalAmount() : 0;
+            int currentTotalQty = orderDao.countTotalItems(order.getOrderId());
             
-            // 今回のカート金額
-            int cartTotal = cart.getTotalAmount();
+            // 2. カート内の個数を取得
+            int cartQty = cart.getTotalQuantity();
 
-            // 上限チェック
-            if (currentTotal + cartTotal > MAX_TOTAL_AMOUNT) {
-                return new OrderRegisterResult(false, "注文金額の上限（300,000円）を超えています。");
+            // 3. 上限チェック (50個)
+            if (currentTotalQty + cartQty > MAX_TOTAL_QUANTITY) {
+                // 詳細なエラーメッセージを作成
+                String msg = "ご注文数の上限（" + MAX_TOTAL_QUANTITY + "品）を超過しています。\n\n"
+                           + "現在の注文済み： " + currentTotalQty + " 品\n"
+                           + "カートの商品数： " + cartQty + " 品\n"
+                           + "----------------------\n"
+                           + "合　計　　　　： " + (currentTotalQty + cartQty) + " 品\n\n"
+                           + "一度のご来店で注文できるのは最大50品までです。\n"
+                           + "カートの内容を減らすか、店員をお呼びください。";
+                
+                return new OrderRegisterResult(false, msg);
             }
 
+            con = db.getConnection();
             con.setAutoCommit(false); // トランザクション開始
 
-            // 1. OrderItemテーブルへの登録
+            // 4. OrderItemテーブルへの登録
             List<OrderItem> dbItems = new ArrayList<>();
             for (CartItem ci : cart.getItems()) {
                 OrderItem oi = new OrderItem();
@@ -51,7 +58,7 @@ public class OrderRegisterControl {
             OrderItemDao itemDao = new OrderItemDao();
             itemDao.insertBatch(con, dbItems, order.getOrderId().toString());
 
-            // 2. OrderCountテーブル（分析用）の更新
+            // 5. OrderCountテーブル（分析用）の更新
             AnalysisDao anaDao = new AnalysisDao(); 
             String customerType = CustomerTypeLogic.determineType(order);
             
@@ -65,7 +72,7 @@ public class OrderRegisterControl {
         } catch (Exception e) {
             try { if (con != null) con.rollback(); } catch (Exception ex) {}
             e.printStackTrace();
-            return new OrderRegisterResult(false, "エラー: " + e.getMessage());
+            return new OrderRegisterResult(false, "システムエラーが発生しました: " + e.getMessage());
         } finally {
             closer.closeConnection(con);
         }

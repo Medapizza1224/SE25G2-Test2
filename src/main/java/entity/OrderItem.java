@@ -14,12 +14,15 @@ public class OrderItem {
     
     // ★追加: 画面表示用（DBのorder_itemsテーブルにはないが、JOIN結果を入れるため）
     private String productName; 
+    private String image;
+    private String tableNumber;
 
     private int quantity;
     private int price;
     private Timestamp addOrderAt;
     private Timestamp orderCompletedAt;
     private String orderStatus;
+    
 
     // ★追加: 引数なしコンストラクタ (DAOで使用するため必須)
     public OrderItem() {
@@ -90,6 +93,10 @@ public class OrderItem {
         }
     }
 
+    // ★追加 Getter/Setter
+    public String getImage() { return image; }
+    public void setImage(String image) { this.image = image; }
+
     // ★追加: 商品名 (表示用なのでバリデーションは任意ですが、Setterは用意)
     public String getProductName() {
         return productName;
@@ -97,6 +104,14 @@ public class OrderItem {
 
     public void setProductName(String productName) {
         this.productName = productName;
+    }
+
+    public String getTableNumber() {
+        return tableNumber;
+    }
+
+    public void setTableNumber(String tableNumber) {
+        this.tableNumber = tableNumber;
     }
 
     // 個数 (1〜10個)
@@ -110,8 +125,8 @@ public class OrderItem {
     }
 
     private void checkQuantity(int quantity) throws Failure {
-        if (quantity < 1 || quantity > 10) {
-            throw new Failure("個数は1個から10個の間で設定してください。");
+        if (quantity < 1) {
+            throw new Failure("個数は1個以上で設定してください。");
         }
     }
 

@@ -23,13 +23,30 @@
 
         button[type="submit"] { width: 100%; height: 50px; background-color: #000000; color: #FFFFFF; border: none; border-radius: 25px; font-size: 18px; font-weight: bold; cursor: pointer; font-family: inherit; margin-top: 10px; }
         button[type="submit"]:hover { opacity: 0.8; }
-        
+        .link-area { 
+            margin-top: 30px; 
+            font-size: 15px; 
+            font-weight: bold; 
+            text-align: center; 
+            color: #000; /* 文字色を黒に */
+        }
+        .link-area a { 
+            color: #0066cc; /* リンクを青色に */
+            text-decoration: none; 
+            border-bottom: none; /* 以前の下線を消す */
+            margin-left: 5px; /* コロンとの間隔を少し空ける */
+        }
+        .link-area a:hover {
+            opacity: 0.8;
+        }
+
         .link-area { margin-top: 25px; font-size: 14px; font-weight: bold; text-align: center; }
-        .link-area a { color: #000; text-decoration: none; border-bottom: 1px solid #000; }
+        .link-area a { color: #0070C0; text-decoration: none; border-bottom: 1px solid #0070C0; }
 
         /* エラー表示スタイル */
         .error-container { display: flex; align-items: center; justify-content: flex-start; gap: 5px; color: #FF0000; font-size: 13px; font-weight: bold; margin-top: 10px; margin-bottom: 10px; }
         .error-icon { width: 16px; height: 16px; }
+        
     </style>
     <script>
         function togglePassword(id) {
@@ -71,7 +88,8 @@
         </form>
 
         <div class="link-area">
-            <a href="${pageContext.request.contextPath}/user_signup">新規登録はこちら</a>
+            アカウントをお持ちでない場合： 
+            <a href="${pageContext.request.contextPath}/user_signup">新規登録</a>
         </div>
     </div>
 </body>

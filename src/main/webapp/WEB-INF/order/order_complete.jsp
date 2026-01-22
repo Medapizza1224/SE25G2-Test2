@@ -1,6 +1,11 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ page import="util.AppConfig" %>
+<%
+    AppConfig conf = AppConfig.load(application);
+    request.setAttribute("conf", conf);
+%>
 
 <%-- セッションチェック --%>
 <c:if test="${empty sessionScope.tableNumber}">
@@ -8,7 +13,6 @@
 </c:if>
 
 <%
-    // キャッシュ無効化（戻るボタン対策）
     response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     response.setHeader("Pragma", "no-cache");
     response.setDateHeader("Expires", 0);
@@ -19,8 +23,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>注文完了</title>
+    <title>注文端末：完了</title>
     <style>
+        :root {
+            --main-color: ${not empty conf.themeColor ? conf.themeColor : '#FF6900'};
+        }
         body { 
             font-family: "Helvetica Neue", Arial, sans-serif; 
             display: flex; 
@@ -50,11 +57,10 @@
             object-fit: contain;
         }
         
-        /* チェックマークアイコン */
         .check-icon {
             width: 80px;
             height: 80px;
-            background-color: #4CAF50; /* 緑色 */
+            background-color: #4CAF50;
             border-radius: 50%;
             display: flex;
             justify-content: center;
@@ -73,28 +79,18 @@
             margin-top: -8px;
         }
 
-        h2 {
-            font-size: 28px;
-            font-weight: bold;
-            margin: 0 0 15px 0;
-            color: #333;
-        }
-        p {
-            font-size: 16px;
-            color: #888;
-            margin: 0 0 50px 0;
-            line-height: 1.6;
-        }
+        h2 { font-size: 28px; font-weight: bold; margin: 0 0 15px 0; color: #333; }
+        p { font-size: 16px; color: #888; margin: 0 0 50px 0; line-height: 1.6; }
 
         .btn { 
-            background: #FF6900; 
+            background: var(--main-color); 
             color: white; 
             padding: 18px 100px; 
             text-decoration: none; 
             border-radius: 50px; 
             font-weight: bold; 
             font-size: 20px; 
-            box-shadow: 0 4px 15px rgba(255, 105, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             transition: transform 0.1s, opacity 0.2s;
             display: inline-block;
         }
@@ -106,16 +102,10 @@
 </head>
 <body>
     <div class="card">
-        <!-- ロゴ画像 -->
         <img class="logo" src="${pageContext.request.contextPath}/image/logo/logo.svg?v=${applicationScope.logoVersion}" alt="ロゴ">
-        
-        <!-- チェックアイコン -->
         <div class="check-icon"></div>
-        
         <h2>ご注文を承りました</h2>
         <p>スタッフが商品をお持ちします。<br>しばらくお待ちください。</p>
-        
-        <!-- メニューへ戻るボタン -->
         <a href="${pageContext.request.contextPath}/OrderHome" class="btn">メニューに戻る</a>
     </div>
 </body>

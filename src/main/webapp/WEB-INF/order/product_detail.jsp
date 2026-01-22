@@ -11,7 +11,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>数量選択</title>
+    <title>注文端末：数量</title>
     <style>
         body { margin: 0; background: rgba(0,0,0,0.8); height: 100vh; display: flex; justify-content: center; align-items: center; font-family: sans-serif; }
         .modal-card { background: #fff; width: 90%; max-width: 800px; height: 500px; display: flex; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
