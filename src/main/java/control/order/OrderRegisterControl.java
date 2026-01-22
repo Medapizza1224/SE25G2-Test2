@@ -35,11 +35,12 @@ public class OrderRegisterControl {
             itemDao.insertBatch(con, dbItems, order.getOrderId().toString());
 
             // 2. OrderCountテーブル（分析用）の更新
-            OrderCountDao countDao = new OrderCountDao();
-            String customerType = CustomerTypeLogic.determineType(order); // 客層判定
+            AnalysisDao anaDao = new AnalysisDao(); // AnalysisDaoを使用
+            String customerType = CustomerTypeLogic.determineType(order);
             
             for (CartItem ci : cart.getItems()) {
-                countDao.incrementCount(con, ci.getProduct().getProductId(), customerType, ci.getQuantity());
+                // 当日のレコードに対してインクリメント
+                anaDao.incrementCount(con, ci.getProduct().getProductId(), customerType, ci.getQuantity());
             }
 
             con.commit();

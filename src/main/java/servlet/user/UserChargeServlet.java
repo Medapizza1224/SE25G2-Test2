@@ -22,11 +22,6 @@ public class UserChargeServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession();
         User sessionUser = (User) session.getAttribute("user");
-        /* 
-        if (sessionUser == null) {
-            response.sendRedirect(request.getContextPath() + "/user_signin");
-            return;
-        }*/
 
         try {
             // 最新の残高を表示するために取得

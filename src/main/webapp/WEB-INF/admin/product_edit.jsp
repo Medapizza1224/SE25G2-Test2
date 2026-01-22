@@ -1,6 +1,12 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ page import="util.AppConfig" %>
+<%
+    // 変数名を変更
+    AppConfig appSettings = AppConfig.load(application);
+    request.setAttribute("conf", appSettings);
+%>
 
 <c:if test="${empty sessionScope.adminNameManagement}">
     <c:redirect url="/Admin" />
@@ -12,33 +18,30 @@
     <meta charset="UTF-8">
     <title>商品編集</title>
     <style>
-        /* 共通スタイル (Kitchenと同じ) */
-        body { margin: 0; padding: 0; font-family: "Helvetica Neue", Arial, sans-serif; display: flex; height: 100vh; background-color: #f5f5f5; color: #333; }
-        a { text-decoration: none; }
+        body { margin: 0; padding: 0; font-family: "Helvetica Neue", Arial, sans-serif; display: flex; height: 100vh; background-color: #f5f5f5; color: #333; 
+            --main-color: ${not empty conf.themeColor ? conf.themeColor : '#FF6900'};
+        }
+        a { text-decoration: none; color: inherit; }
+
         .sidebar { width: 240px; background-color: #fff; border-right: 1px solid #ddd; display: flex; flex-direction: column; padding-top: 20px; flex-shrink: 0; }
         .brand { font-size: 20px; font-weight: bold; padding: 0 25px 30px; display: flex; align-items: center; gap: 10px; }
         .sidebar-item { display: flex; align-items: center; padding: 15px 25px; color: #666; font-weight: bold; font-size: 16px; transition: 0.2s; }
         .sidebar-item:hover { background-color: #f9f9f9; color: #333; }
-        .sidebar-item.active { background-color: #fff5f0; color: #FF6900; border-right: 4px solid #FF6900; }
-        .icon { width: 30px; text-align: center; margin-right: 10px; font-size: 20px; }
+        .sidebar-item.active { background-color: #fff5f0; color: var(--main-color); border-right: 4px solid var(--main-color); }
+        .icon-img { width: 24px; height: 24px; margin-right: 10px; object-fit: contain; }
+
         .content { flex: 1; padding: 40px; overflow-y: auto; }
-        .page-header { border-left: 5px solid #FF6900; padding-left: 15px; margin-bottom: 30px; }
+        .page-header { border-left: 5px solid var(--main-color); padding-left: 15px; margin-bottom: 30px; }
         .page-title { font-size: 24px; font-weight: bold; }
 
-        /* --- 編集画面固有スタイル --- */
+        /* 編集フォーム固有 */
         .form-card { background: white; padding: 40px; border-radius: 12px; max-width: 800px; margin: 0 auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        
         .form-row { display: flex; margin-bottom: 25px; align-items: center; border-bottom: 1px solid #f5f5f5; padding-bottom: 25px; }
         .label { width: 180px; font-weight: bold; color: #666; font-size: 14px; }
         .input-area { flex: 1; }
-        
-        input[type="text"], input[type="number"] {
-            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; box-sizing: border-box;
-        }
-        input:focus { border-color: #FF6900; outline: none; }
-        
+        input[type="text"], input[type="number"] { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
+        input:focus { border-color: var(--main-color); outline: none; }
         .readonly { background: #f9f9f9; border: none; font-weight: bold; color: #333; }
-
         .preview-img { width: 120px; height: 80px; object-fit: cover; border-radius: 6px; margin-right: 15px; border: 1px solid #ddd; }
         
         .radio-group { display: flex; gap: 20px; }
@@ -48,25 +51,32 @@
         .tag-ng { background: #ccc; }
 
         .submit-area { text-align: center; margin-top: 40px; }
-        .submit-btn { 
-            width: 250px; padding: 15px; background: #FF6900; color: white; border: none; 
-            border-radius: 30px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s;
-            box-shadow: 0 4px 10px rgba(255, 105, 0, 0.3);
-        }
+        .submit-btn { width: 250px; padding: 15px; background: var(--main-color); color: white; border: none; border-radius: 30px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .submit-btn:hover { opacity: 0.9; }
-
         .error-msg { background: #ffe0e0; color: #d00; padding: 10px; border-radius: 4px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
     <div class="sidebar">
         <div class="brand">🐄 焼肉〇〇</div>
-        <a href="AdminKitchen" class="sidebar-item"><span class="icon">🍳</span> 注文状況</a>
-        <a href="AdminAnalysis" class="sidebar-item"><span class="icon">📊</span> 分析</a>
-        <a href="AdminUserView" class="sidebar-item"><span class="icon">👤</span> ユーザー</a>
-        <a href="AdminProductList" class="sidebar-item active"><span class="icon">🍽</span> 商品</a>
-        <a href="admin-setup" class="sidebar-item"><span class="icon">あ</span> 設定</a>
-        <a href="Admin" class="sidebar-item" style="margin-top:auto;"><span class="icon">🚪</span> ログアウト</a>
+        <a href="AdminKitchen" class="sidebar-item">
+            <img src="${pageContext.request.contextPath}/image/system/icon_kitchen.svg" class="icon-img"> 注文状況
+        </a>
+        <a href="AdminAnalysis" class="sidebar-item">
+            <img src="${pageContext.request.contextPath}/image/system/icon_analysis.svg" class="icon-img"> 分析
+        </a>
+        <a href="AdminUserView" class="sidebar-item">
+            <img src="${pageContext.request.contextPath}/image/system/icon_user.svg" class="icon-img"> ユーザー
+        </a>
+        <a href="AdminProductList" class="sidebar-item active">
+            <img src="${pageContext.request.contextPath}/image/system/icon_product.svg" class="icon-img"> 商品
+        </a>
+        <a href="admin-setup" class="sidebar-item">
+            <img src="${pageContext.request.contextPath}/image/system/icon_setting.svg" class="icon-img"> 設定
+        </a>
+        <a href="Admin" class="sidebar-item" style="margin-top:auto;">
+            <img src="${pageContext.request.contextPath}/image/system/icon_logout.svg" class="icon-img"> ログアウト
+        </a>
     </div>
 
     <div class="content">
@@ -85,7 +95,6 @@
             </c:if>
 
             <form action="AdminProductEdit" method="post" enctype="multipart/form-data">
-                <!-- 制御用パラメータ -->
                 <input type="hidden" name="mode" value="${result.mode}">
                 <input type="hidden" name="currentImage" value="${result.product.image}">
 
@@ -94,7 +103,6 @@
                     <div class="input-area">
                         <c:choose>
                             <c:when test="${result.mode == 'update'}">
-                                <!-- 更新時は変更不可 -->
                                 <input type="text" name="productId" value="${result.product.productId}" class="readonly" readonly>
                             </c:when>
                             <c:otherwise>
@@ -126,10 +134,9 @@
                     <div class="input-area">
                         <input type="text" name="category" value="${result.product.category}" list="catList">
                         <datalist id="catList">
-                            <option value="肉">
-                            <option value="ホルモン">
-                            <option value="サイド">
-                            <option value="ドリンク">
+                            <c:forEach var="c" items="${conf.categories}">
+                                <option value="${c.name}">
+                            </c:forEach>
                         </datalist>
                     </div>
                 </div>

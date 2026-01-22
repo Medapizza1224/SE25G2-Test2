@@ -2,60 +2,58 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%@ page import="util.AppConfig" %>
+<%
+    // 変数名を変更
+    AppConfig appSettings = AppConfig.load(application);
+    request.setAttribute("conf", appSettings);
+%>
 
 <c:if test="${empty sessionScope.adminNameManagement}">
     <c:redirect url="/Admin" />
 </c:if>
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <title>売上分析</title>
     <style>
-        /* 共通スタイル (Kitchenと同じ) */
-        body { margin: 0; padding: 0; font-family: "Helvetica Neue", Arial, sans-serif; display: flex; height: 100vh; background-color: #f5f5f5; color: #333; }
-        a { text-decoration: none; }
+        body { margin: 0; padding: 0; font-family: "Helvetica Neue", Arial, sans-serif; display: flex; height: 100vh; background-color: #f5f5f5; color: #333; 
+            --main-color: ${not empty conf.themeColor ? conf.themeColor : '#FF6900'};
+        }
+        a { text-decoration: none; color: inherit; }
+
         .sidebar { width: 240px; background-color: #fff; border-right: 1px solid #ddd; display: flex; flex-direction: column; padding-top: 20px; flex-shrink: 0; }
         .brand { font-size: 20px; font-weight: bold; padding: 0 25px 30px; display: flex; align-items: center; gap: 10px; }
         .sidebar-item { display: flex; align-items: center; padding: 15px 25px; color: #666; font-weight: bold; font-size: 16px; transition: 0.2s; }
         .sidebar-item:hover { background-color: #f9f9f9; color: #333; }
-        .sidebar-item.active { background-color: #fff5f0; color: #FF6900; border-right: 4px solid #FF6900; }
-        .icon { width: 30px; text-align: center; margin-right: 10px; font-size: 20px; }
+        .sidebar-item.active { background-color: #fff5f0; color: var(--main-color); border-right: 4px solid var(--main-color); }
+        .icon-img { width: 24px; height: 24px; margin-right: 10px; object-fit: contain; }
+
         .content { flex: 1; padding: 40px; overflow-y: auto; }
-        .page-header { border-left: 5px solid #FF6900; padding-left: 15px; margin-bottom: 30px; }
+        .page-header { border-left: 5px solid var(--main-color); padding-left: 15px; margin-bottom: 30px; }
         .page-title { font-size: 24px; font-weight: bold; }
 
-        /* --- 分析画面固有スタイル --- */
+        /* 分析固有 */
         .tab-container { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
-        .tab-btn { 
-            padding: 10px 25px; border-radius: 30px; background: #eee; color: #666; font-weight: bold; font-size: 14px; transition: 0.2s;
-        }
+        .tab-btn { padding: 10px 25px; border-radius: 30px; background: #eee; color: #666; font-weight: bold; font-size: 14px; transition: 0.2s; }
         .tab-btn:hover { background: #e0e0e0; }
-        .tab-btn.active { background: #FF6900; color: white; box-shadow: 0 4px 6px rgba(255, 105, 0, 0.3); }
+        .tab-btn.active { background: var(--main-color); color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 
-        .ranking-container { 
-            background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-        }
-        
+        .ranking-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .section-title { font-size: 18px; font-weight: bold; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-        .section-icon { color: #FF6900; }
+        .section-icon { color: var(--main-color); }
 
         .rank-grid { display: flex; gap: 30px; overflow-x: auto; padding-bottom: 20px; }
-        
         .rank-card { width: 200px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; }
-        
         .crown { font-size: 32px; margin-bottom: 5px; }
         .gold { color: #FFD700; }
         .silver { color: #C0C0C0; }
         .bronze { color: #CD7F32; }
+        .rank-badge { background: var(--main-color); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; margin-bottom: 10px; }
         
-        .rank-badge {
-            background: #FF6900; color: white; width: 30px; height: 30px; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center; font-weight: bold; margin-bottom: 10px;
-        }
-
         .food-img { width: 100%; height: 140px; object-fit: cover; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
-        
         .food-name { font-weight: bold; font-size: 16px; margin-bottom: 5px; text-align: center; }
         .food-count { font-size: 13px; color: #666; background: #f0f0f0; padding: 5px 15px; border-radius: 20px; }
     </style>
@@ -63,12 +61,24 @@
 <body>
     <div class="sidebar">
         <div class="brand">🐄 焼肉〇〇</div>
-        <a href="AdminKitchen" class="sidebar-item"><span class="icon">🍳</span> 注文状況</a>
-        <a href="AdminAnalysis" class="sidebar-item active"><span class="icon">📊</span> 分析</a>
-        <a href="AdminUserView" class="sidebar-item"><span class="icon">👤</span> ユーザー</a>
-        <a href="AdminProductList" class="sidebar-item"><span class="icon">🍽</span> 商品</a>
-        <a href="admin-setup" class="sidebar-item"><span class="icon">あ</span> 設定</a>
-        <a href="Admin" class="sidebar-item" style="margin-top:auto;"><span class="icon">🚪</span> ログアウト</a>
+        <a href="AdminKitchen" class="sidebar-item">
+            <img src="${pageContext.request.contextPath}/image/system/icon_kitchen.svg" class="icon-img"> 注文状況
+        </a>
+        <a href="AdminAnalysis" class="sidebar-item active">
+            <img src="${pageContext.request.contextPath}/image/system/icon_analysis.svg" class="icon-img"> 分析
+        </a>
+        <a href="AdminUserView" class="sidebar-item">
+            <img src="${pageContext.request.contextPath}/image/system/icon_user.svg" class="icon-img"> ユーザー
+        </a>
+        <a href="AdminProductList" class="sidebar-item">
+            <img src="${pageContext.request.contextPath}/image/system/icon_product.svg" class="icon-img"> 商品
+        </a>
+        <a href="admin-setup" class="sidebar-item">
+            <img src="${pageContext.request.contextPath}/image/system/icon_setting.svg" class="icon-img"> 設定
+        </a>
+        <a href="Admin" class="sidebar-item" style="margin-top:auto;">
+            <img src="${pageContext.request.contextPath}/image/system/icon_logout.svg" class="icon-img"> ログアウト
+        </a>
     </div>
 
     <div class="content">
@@ -87,29 +97,21 @@
 
         <div class="ranking-container">
             <div class="section-title">
-                <span class="section-icon">🏆</span> 
-                人気商品ランキング (TOP 5)
+                <span class="section-icon">🏆</span> 人気商品ランキング (TOP 5)
             </div>
-
             <div class="rank-grid">
                 <c:if test="${empty result.ranking}">
                     <p style="color:#999; padding:20px;">データが集計されていません。</p>
                 </c:if>
-
                 <c:forEach var="item" items="${result.ranking}" varStatus="st">
                     <div class="rank-card">
-                        <!-- 順位アイコン -->
                         <c:choose>
                             <c:when test="${st.count == 1}"><div class="crown gold">♛</div></c:when>
                             <c:when test="${st.count == 2}"><div class="crown silver">♛</div></c:when>
                             <c:when test="${st.count == 3}"><div class="crown bronze">♛</div></c:when>
                             <c:otherwise><div class="rank-badge">${st.count}</div></c:otherwise>
                         </c:choose>
-                        
-                        <!-- 商品画像 (AnalysisDtoにimageフィールドがあればそれを表示、なければダミー) -->
-                        <!-- 変数を item に修正 -->
                         <img src="${pageContext.request.contextPath}/image/product/${item.image}" class="food-img" alt="商品画像">
-                        
                         <div class="food-name">${item.productName}</div>
                         <div class="food-count">注文数: ${item.count}</div>
                     </div>

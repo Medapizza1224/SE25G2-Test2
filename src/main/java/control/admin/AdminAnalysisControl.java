@@ -1,28 +1,31 @@
 package control.admin;
 
 import java.util.List;
-import dao.OrderCountDao;
+import dao.AnalysisDao;
 import dto.AnalysisDto;
 
 public class AdminAnalysisControl {
+    
     public AdminAnalysisResult execute(String type) {
-        if (type == null) type = "Single";
-
-        // タブの種類をDBカラム名に変換
-        String column = "order_count_from_single_adult";
-        switch (type) {
-            case "Pair": column = "order_count_from_two_adults"; break;
-            case "Family": column = "order_count_from_family_group"; break;
-            case "AdultGroup": column = "order_count_from_adult_group"; break;
-            case "Group": column = "order_count_from_group"; break;
+        // 1. パラメータがなければデフォルトを "Single" にする
+        if (type == null || type.isEmpty()) {
+            type = "Single";
         }
 
         try {
-            OrderCountDao dao = new OrderCountDao();
-            List<AnalysisDto> ranking = dao.getRanking(column);
+            AnalysisDao dao = new AnalysisDao();
+            
+            // ★修正ポイント:
+            // 以前のコードにあった switch 文によるカラム名変換処理は削除しました。
+            // 新しい AnalysisDao.getRanking() は "Single", "Pair" 等のタイプ名を
+            // そのまま受け取って内部で適切なカラムを判断してくれます。
+            List<AnalysisDto> ranking = dao.getRanking(type);
+            
             return new AdminAnalysisResult(ranking, type);
+            
         } catch (Exception e) {
             e.printStackTrace();
+            // エラー時はランキングをnullにして結果を返す
             return new AdminAnalysisResult(null, type);
         }
     }

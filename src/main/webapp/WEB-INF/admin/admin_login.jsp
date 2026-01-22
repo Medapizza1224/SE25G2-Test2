@@ -1,173 +1,154 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
-
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <title>管理者ログイン</title>
     <style>
-        /* 全体のリセットとフォント設定 */
         body {
-            margin: 0;
-            padding: 0;
-            font-family: "Helvetica Neue", Arial, sans-serif;
-            background-color: #fff;
-            color: #333;
+            font-family: "Yu Gothic", "YuGothic", sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #fff;
         }
 
-        /* 外枠のコンテナ（グレーの枠線） */
         .container {
-            width: 900px;
-            height: 600px;
-            border: 4px solid #ccc;
+            width: 300px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
         }
 
-        /* ログインフォームの中央エリア */
-        .login-box {
-            text-align: left;
-            width: 300px;
-        }
-
-        /* 牛のアイコンと店名 */
-        .brand {
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
+        .logo {
+            width: 160px;
+            height: auto;
             margin-bottom: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-        .icon-cow {
-            font-size: 30px; /* 絵文字で代用 */
         }
 
-        /* 入力ラベル */
-        label {
-            display: block;
-            font-size: 12px;
+        h2 { display: none; }
+
+        .error-msg {
+            color: red;
+            margin-bottom: 10px;
+            font-size: 14px;
             font-weight: bold;
-            margin-bottom: 5px;
-            margin-top: 20px;
+            width: 100%;
+            text-align: left;
         }
 
-        /* 入力フィールド */
+        form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
         .input-group {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
             position: relative;
         }
-        
+
+        .input-label {
+            font-size: 15px;
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 6px;
+            display: block;
+        }
+
         input[type="text"],
         input[type="password"] {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 20px; /* 角丸 */
+            height: 40px;
             box-sizing: border-box;
-            font-size: 14px;
-            outline: none;
-            padding-right: 35px; /* アイコン分の余白 */
-        }
-
-        /* パスワード表示切替の目玉アイコン */
-        .toggle-password {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #999;
-            font-size: 16px;
-        }
-
-        /* ログインボタン */
-        .btn-login {
-            display: block;
-            width: 100%;
-            background-color: #000; /* 黒 */
-            color: #fff;
-            padding: 12px;
-            border: none;
-            border-radius: 25px; /* 完全な角丸 */
+            border: 2px solid #BFBFBF;
+            border-radius: 20px;
+            padding: 0 20px;
             font-size: 14px;
             font-weight: bold;
+            font-family: inherit;
+            outline: none;
+            color: #000;
+        }
+        
+        input::placeholder { color: #A6A6A6; }
+
+        /* 目のアイコン (画像) */
+        .eye-icon {
+            position: absolute;
+            right: 15px;
+            top: 35px; /* ラベルの高さ等を考慮して位置調整 */
+            width: 24px;
+            height: 24px;
             cursor: pointer;
+            pointer-events: auto;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            height: 50px;
+            background-color: #000000;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
             margin-top: 30px;
-            transition: opacity 0.2s;
-        }
-        .btn-login:hover {
-            opacity: 0.8;
         }
 
-        /* エラーメッセージ */
-        .error-msg {
-            color: red;
-            font-size: 12px;
-            text-align: center;
-            margin-top: 10px;
-            min-height: 18px;
-        }
-
+        button[type="submit"]:hover { opacity: 0.8; }
     </style>
     <script>
-        // パスワードの表示・非表示切り替え
-        function togglePassword() {
-            const passwordInput = document.getElementById("password");
-            if (passwordInput.type === "password") {
-                passwordInput.type = "text";
+        function togglePassword(id) {
+            const input = document.getElementById(id);
+            if (input.type === "password") {
+                input.type = "text";
             } else {
-                passwordInput.type = "password";
+                input.type = "password";
             }
         }
     </script>
 </head>
 <body>
-    
     <div class="container">
-        <div class="login-box">
-            <!-- ロゴ -->
-            <div class="brand">
-                <span class="icon-cow">🐄</span> 焼肉〇〇
+        <!-- ロゴ画像 -->
+        <img class="logo" src="${pageContext.request.contextPath}/image/logo/logo.svg?v=${applicationScope.logoVersion}" alt="ロゴ">
+        
+        <h2>管理者ログイン</h2>
+
+        <c:if test="${not empty error}">
+            <p class="error-msg">${error}</p>
+        </c:if>
+
+        <form action="${pageContext.request.contextPath}/Admin" method="post">
+            <!-- 管理者名 -->
+            <div class="input-group">
+                <span class="input-label">管理者名</span>
+                <input type="text" name="adminName" value="${not empty adminName ? adminName : ''}">
             </div>
 
-            <form action="${pageContext.request.contextPath}/Admin" method="post">
-                <!-- 管理者名 -->
-                <label for="adminName">管理者名</label>
-                <div class="input-group">
-                    <%-- 初期値を削除し、エラー時の再表示のみ残しています --%>
-                    <input type="text" id="adminName" name="adminName" 
-                           value="${not empty adminName ? adminName : ''}">
-                </div>
+            <!-- パスワード -->
+            <div class="input-group">
+                <span class="input-label">パスワード</span>
+                <input type="password" name="password" id="adminPass">
+                <!-- 目のアイコン (画像に変更) -->
+                <img src="${pageContext.request.contextPath}/image/system/password.svg" 
+                     class="eye-icon" 
+                     onclick="togglePassword('adminPass')" 
+                     alt="表示切替">
+            </div>
 
-                <!-- パスワード -->
-                <label for="password">パスワード</label>
-                <div class="input-group">
-                    <input type="password" id="password" name="password">
-                    <span class="toggle-password" onclick="togglePassword()">👁</span>
-                </div>
-
-                <!-- エラー表示エリア -->
-                <div class="error-msg">
-                    <c:if test="${not empty error}">
-                        <c:out value="${error}" />
-                    </c:if>
-                </div>
-
-                <!-- ボタン -->
-                <button type="submit" class="btn-login">ログイン</button>
-            </form>
-        </div>
+            <button type="submit">ログイン</button>
+        </form>
     </div>
-
 </body>
 </html>
