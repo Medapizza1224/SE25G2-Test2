@@ -1,9 +1,7 @@
 package servlet.order;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
@@ -24,20 +22,22 @@ public class OrderPaymentSelectServlet extends HttpServlet {
         }
 
         try {
-            // 1. 注文履歴（明細）を取得
             OrderItemDao dao = new OrderItemDao();
-            List<OrderItem> items = dao.findByOrderId(order.getOrderId().toString());
-            
-            // 2. 合計金額を計算（念のため再計算）
-            int total = items.stream().mapToInt(i -> i.getPrice() * i.getQuantity()).sum();
-            order.setTotalAmount(total); // セッションのOrderも更新しておく
-            
-            // 3. 決済方法設定を取得
-            AppConfig config = AppConfig.load(getServletContext());
+            // ★未提供品があるかチェック
+            boolean hasUnserved = dao.hasUnservedItems(order.getOrderId().toString());
 
-            request.setAttribute("items", items);
-            request.setAttribute("totalAmount", total);
-            request.setAttribute("paymentMethods", config.getPaymentMethods());
+            if (hasUnserved) {
+                // 未提供がある場合は、警告専用フラグを立ててJSPへ
+                request.setAttribute("blockPayment", true);
+            } else {
+                // すべて提供済みなら通常通りデータ取得
+                List<OrderItem> items = dao.findByOrderId(order.getOrderId().toString());
+                int total = items.stream().mapToInt(i -> i.getPrice() * i.getQuantity()).sum();
+                order.setTotalAmount(total);
+                request.setAttribute("items", items);
+                request.setAttribute("totalAmount", total);
+                request.setAttribute("paymentMethods", AppConfig.load(getServletContext()).getPaymentMethods());
+            }
 
             request.getRequestDispatcher("/WEB-INF/order/payment_select.jsp").forward(request, response);
 
