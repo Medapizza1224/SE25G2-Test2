@@ -115,18 +115,18 @@ Portainerでは各アプリのシステムに必要なコンテナ群を「Stack
 4. Stackを作成してください。
     - ![PortainerのStack作成画面のスクリーンショット](portainer-create-stack-1.png)
     - ![PortainerのStack作成画面のスクリーンショット](portainer-stack-create-2.png)
-    - Name: `se24g2`
+    - Name: `se25g2`
     - Build method: `Web editor`
     - Web editorに次の内容を入力してください（コピーボタンを押してコピーしてください）。
       ```yaml
       services:
         app:
-          image: onyx.u-gakugei.ac.jp:5000/se24g2/se24g2:latest
+          image: onyx.u-gakugei.ac.jp:5000/se25g2/se25g2:latest
           depends_on:
             - mysql
           restart: always
           environment:
-            - APP_DB_PROPERTIES_FILENAME=se24g2DataSource.properties
+            - APP_DB_PROPERTIES_FILENAME=se25g2DataSource.properties
           networks:
             - proxy
             - default
@@ -155,14 +155,14 @@ Portainerでは各アプリのシステムに必要なコンテナ群を「Stack
       ```
     - Enable access control: オンにして`Private`を選択する。
     - 最後に`Deploy the stack`ボタンをクリックしてください。
-7. Stackの作成に成功すると、Stackの一覧に`se24g2`が表示されます。
+7. Stackの作成に成功すると、Stackの一覧に`se25g2`が表示されます。
     - ![PortainerのStack一覧画面のスクリーンショット](./portainer-stacks.png)
 
 ### 4. mysqlコンテナでデータベースを初期化するためのSQLを実行する
 
-1. Stackの一覧画面から`se24g2`をクリックして、Stackの編集画面を表示します。
+1. Stackの一覧画面から`se25g2`をクリックして、Stackの編集画面を表示します。
     - ![PortainerのStack一覧画面のスクリーンショット](./portainer-stacks.png)
-2. コンテナの一覧から`se24g2-mysql-1`をクリックして、コンテナの編集画面を表示します。
+2. コンテナの一覧から`se25g2-mysql-1`をクリックして、コンテナの編集画面を表示します。
     - ![Portainerのコンテナ一覧画面のスクリーンショット](portainer-containers-mysql.png)
 3. `Container status`の下部にある`Console`をクリックして、コンテナのコンソール接続画面を表示します。
     - ![Portainerのコンテナ編集画面のスクリーンショット](portainer-container-console.png)
@@ -186,7 +186,7 @@ Portainerでは各アプリのシステムに必要なコンテナ群を「Stack
 
 ### 5. 動作確認をする
 
-- https://onyx.u-gakugei.ac.jp/se24g2 配下のURLにアクセスして動作確認をしてください。
+- https://onyx.u-gakugei.ac.jp/se25g2 配下のURLにアクセスして動作確認をしてください。
 - デプロイが完了したらインスペクタに連絡してください。
 
 ## 2回目以降のデプロイを行う
@@ -197,9 +197,9 @@ Portainerでは各アプリのシステムに必要なコンテナ群を「Stack
 
 ### 2. PortainerでWebアプリのコンテナを再作成する
 
-1. Stackの一覧画面から`se24g2`をクリックして、Stackの編集画面を表示します。
+1. Stackの一覧画面から`se25g2`をクリックして、Stackの編集画面を表示します。
     - ![PortainerのStack一覧画面のスクリーンショット](portainer-stacks.png)
-2. コンテナの一覧から`se24g2-app-1`をクリックして、コンテナの編集画面を表示します。
+2. コンテナの一覧から`se25g2-app-1`をクリックして、コンテナの編集画面を表示します。
     - ![Portainerのコンテナ一覧画面のスクリーンショット](portainer-containers-app.png)
 3. `Actions`の中にある`Recreate`をクリックしてください。
     - ![Portainerのコンテナ編集画面のスクリーンショット](portainer-container-recreate.png)
@@ -209,5 +209,5 @@ Portainerでは各アプリのシステムに必要なコンテナ群を「Stack
 
 ### 3. 動作確認をする
 
-- https://onyx.u-gakugei.ac.jp/se24g2 配下のURLにアクセスして動作確認をしてください。
+- https://onyx.u-gakugei.ac.jp/se25g2 配下のURLにアクセスして動作確認をしてください。
 - デプロイが完了したらインスペクタに連絡してください。
