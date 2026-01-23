@@ -5,13 +5,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 public class TerminalAdminDao {
-    private DataSourceHolder dbHolder = new DataSourceHolder();
+    private final javax.sql.DataSource dataSource; // 変更
     private ConnectionCloser connectionCloser = new ConnectionCloser();
+
+    public TerminalAdminDao() { // 追加
+        this.dataSource = new DataSourceHolder().dataSource;
+    }
 
     public boolean authenticate(String inputId, String inputPass) throws Exception {
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             // お客様のSQL定義: テーブル名=terminal_settings_admins, カラム=id, password
             String sql = "SELECT * FROM terminal_settings_admins WHERE id = ? AND password = ?";
             PreparedStatement ps = con.prepareStatement(sql);

@@ -29,7 +29,7 @@ public class PaymentSetup {
 
     // ★戻り値を PaymentSetupResult に変更
     public PaymentSetupResult execute() throws Exception {
-        DataSourceHolder dbHolder = new DataSourceHolder();
+        javax.sql.DataSource dataSource = new DataSourceHolder().dataSource;
         ConnectionCloser closer = new ConnectionCloser();
         Connection con = null;
 
@@ -80,7 +80,7 @@ public class PaymentSetup {
             String publicKeyStr = Base64.getEncoder().encodeToString(pub.getEncoded());
 
             // 4. DB登録
-            con = dbHolder.getConnection();
+            con = dataSource.getConnection();
             con.setAutoCommit(false);
 
             String sqlUser = "INSERT INTO users (user_id, user_name, user_password, security_code, balance, point, login_attempt_count, is_lockout, encrypted_private_key, public_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";

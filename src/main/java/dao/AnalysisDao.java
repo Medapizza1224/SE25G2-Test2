@@ -6,11 +6,11 @@ import java.util.List;
 import dto.AnalysisDto;
 
 public class AnalysisDao {
-    private final DataSourceHolder dbHolder;
+    private final javax.sql.DataSource dataSource; 
     private final ConnectionCloser connectionCloser;
 
     public AnalysisDao() {
-        this.dbHolder = new DataSourceHolder();
+        this.dataSource = new DataSourceHolder().dataSource; // 変更
         this.connectionCloser = new ConnectionCloser();
     }
 
@@ -69,7 +69,7 @@ public class AnalysisDao {
         List<AnalysisDto> list = new ArrayList<>();
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             
             // メンテナンス（表示のタイミングで更新しておく）
             maintainDailyRecords(con);

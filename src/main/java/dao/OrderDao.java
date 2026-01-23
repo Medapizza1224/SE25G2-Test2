@@ -10,11 +10,11 @@ import entity.Order;
 
 public class OrderDao {
     
-    private final DataSourceHolder dbHolder;
+    private final javax.sql.DataSource dataSource; // 変更
     private final ConnectionCloser connectionCloser;
 
     public OrderDao() {
-        this.dbHolder = new DataSourceHolder();
+        this.dataSource = new DataSourceHolder().dataSource; // 変更
         this.connectionCloser = new ConnectionCloser();
     }
 
@@ -24,7 +24,7 @@ public class OrderDao {
     public void create(Order order) throws DaoException {
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             String sql = "INSERT INTO orders (order_id, table_number, adult_count, child_count, is_payment_completed, visit_at) VALUES (?, ?, ?, ?, ?, ?)";
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, order.getOrderId().toString());
@@ -47,7 +47,7 @@ public class OrderDao {
     public Order findById(UUID orderId) throws DaoException {
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             return findById(con, orderId);
         } catch (Exception e) {
             throw new DaoException("伝票取得エラー", e);
@@ -86,7 +86,7 @@ public class OrderDao {
         List<Order> list = new ArrayList<>();
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             String sql = "SELECT * FROM orders WHERE is_payment_completed = FALSE ORDER BY table_number ASC";
             PreparedStatement ps = con.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
@@ -115,7 +115,7 @@ public class OrderDao {
     public boolean isTableOccupied(String tableNumber) throws DaoException {
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             String sql = "SELECT COUNT(*) FROM orders WHERE table_number = ? AND is_payment_completed = FALSE";
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, tableNumber);
@@ -136,7 +136,7 @@ public class OrderDao {
     public int countTotalItems(UUID orderId) throws DaoException {
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             // order_itemsテーブルのquantityを合計する
             String sql = "SELECT SUM(quantity) as total_qty FROM order_items WHERE order_id = ?";
             PreparedStatement ps = con.prepareStatement(sql);

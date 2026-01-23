@@ -9,11 +9,11 @@ import java.util.UUID;
 import entity.*;
 
 public class DBInspectorDao {
-    private final DataSourceHolder dbHolder;
+    private final javax.sql.DataSource dataSource; // 変更
     private final ConnectionCloser connectionCloser;
 
     public DBInspectorDao() {
-        this.dbHolder = new DataSourceHolder();
+        this.dataSource = new DataSourceHolder().dataSource; // 変更
         this.connectionCloser = new ConnectionCloser();
     }
 
@@ -22,7 +22,7 @@ public class DBInspectorDao {
         List<PendingUser> list = new ArrayList<>();
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             PreparedStatement ps = con.prepareStatement("SELECT * FROM pending_users ORDER BY created_at DESC");
             ResultSet rs = ps.executeQuery();
             while(rs.next()) {
@@ -43,7 +43,7 @@ public class DBInspectorDao {
         List<Admin> list = new ArrayList<>();
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             PreparedStatement ps = con.prepareStatement("SELECT * FROM admins");
             ResultSet rs = ps.executeQuery();
             while(rs.next()) {
@@ -61,7 +61,7 @@ public class DBInspectorDao {
         List<User> list = new ArrayList<>();
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             PreparedStatement ps = con.prepareStatement("SELECT * FROM users");
             ResultSet rs = ps.executeQuery();
             while(rs.next()) {
@@ -85,7 +85,7 @@ public class DBInspectorDao {
         List<Product> list = new ArrayList<>();
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             PreparedStatement ps = con.prepareStatement("SELECT * FROM products");
             ResultSet rs = ps.executeQuery();
             while(rs.next()) {
@@ -108,7 +108,7 @@ public class DBInspectorDao {
         List<Order> list = new ArrayList<>();
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             PreparedStatement ps = con.prepareStatement("SELECT * FROM orders ORDER BY visit_at DESC");
             ResultSet rs = ps.executeQuery();
             while(rs.next()) {
@@ -130,7 +130,7 @@ public class DBInspectorDao {
         List<OrderItem> list = new ArrayList<>();
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             PreparedStatement ps = con.prepareStatement("SELECT * FROM order_items ORDER BY add_order_at DESC");
             ResultSet rs = ps.executeQuery();
             while(rs.next()) {
@@ -154,7 +154,7 @@ public class DBInspectorDao {
         List<Payment> list = new ArrayList<>();
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             PreparedStatement ps = con.prepareStatement("SELECT * FROM payments ORDER BY payment_completed_at DESC");
             ResultSet rs = ps.executeQuery();
             while(rs.next()) {
@@ -175,7 +175,7 @@ public class DBInspectorDao {
         List<Ledger> list = new ArrayList<>();
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             PreparedStatement ps = con.prepareStatement("SELECT * FROM ledger ORDER BY height DESC");
             ResultSet rs = ps.executeQuery();
             while(rs.next()) {
@@ -198,7 +198,7 @@ public class DBInspectorDao {
         List<OrderCount> list = new ArrayList<>();
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             PreparedStatement ps = con.prepareStatement("SELECT * FROM order_counts");
             ResultSet rs = ps.executeQuery();
             while(rs.next()) {
@@ -220,7 +220,7 @@ public class DBInspectorDao {
         List<Analysis> list = new ArrayList<>();
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             PreparedStatement ps = con.prepareStatement("SELECT * FROM analysis ORDER BY analysis_date DESC, product_id ASC");
             ResultSet rs = ps.executeQuery();
             while(rs.next()) {

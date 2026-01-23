@@ -1,49 +1,30 @@
 package dao;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Properties;
-import java.io.InputStream;
 import javax.sql.DataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import java.net.URL;
 
-/**
- * DB接続を提供するクラス
- */
-public class DataSourceHolder {
+public class DataSourceHolder { // publicを追加
     private static HikariConfig _hikariConfig;
     private static DataSource _dataSource;
 
-    // staticイニシャライザで1回だけ設定を読み込む
-    static {
-        try {
-            // プロパティオブジェクトを作成
-            Properties props = new Properties();
-            
-            // クラスパスからファイルをストリームとして読み込む (安全な方法)
-            try (InputStream is = DataSourceHolder.class.getClassLoader().getResourceAsStream("dataSource.properties")) {
-                if (is == null) {
-                    throw new RuntimeException("dataSource.properties が見つかりません。src/main/resources フォルダに配置されているか確認してください。");
-                }
-                props.load(is);
+    public final DataSource dataSource;
+
+    public DataSourceHolder() {
+        if (DataSourceHolder._hikariConfig == null) {
+            // クラスパスから設定ファイルを取得
+            URL resource = this.getClass().getClassLoader().getResource("dataSource.properties");
+            if (resource == null) {
+                throw new RuntimeException("dataSource.propertiesが見つかりません。");
             }
-
-            // プロパティを使ってHikariConfigを初期化
-            _hikariConfig = new HikariConfig(props);
-            _dataSource = new HikariDataSource(_hikariConfig);
-
-        } catch (Exception e) {
-            // エラーログをコンソールに出力
-            e.printStackTrace();
-            throw new RuntimeException("DB接続設定の読み込みに失敗しました: " + e.getMessage(), e);
+            DataSourceHolder._hikariConfig = new HikariConfig(resource.getPath());
         }
-    }
 
-    /**
-     * コネクションを取得する
-     */
-    public Connection getConnection() throws SQLException {
-        return _dataSource.getConnection();
+        if (DataSourceHolder._dataSource == null) {
+            DataSourceHolder._dataSource = new HikariDataSource(DataSourceHolder._hikariConfig);
+        }
+
+        this.dataSource = DataSourceHolder._dataSource;
     }
 }

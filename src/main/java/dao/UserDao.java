@@ -13,11 +13,11 @@ import servlet.system.PaymentSystem;
 
 public class UserDao {
 
-    private final DataSourceHolder dbHolder;
+    private final javax.sql.DataSource dataSource; // 変更
     private final ConnectionCloser connectionCloser;
 
     public UserDao() {
-        this.dbHolder = new DataSourceHolder();
+        this.dataSource = new DataSourceHolder().dataSource; // 変更
         this.connectionCloser = new ConnectionCloser();
     }
 
@@ -27,7 +27,7 @@ public class UserDao {
     public User findById(UUID userId) throws Exception {
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             String sql = "SELECT * FROM users WHERE user_id = ?";
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, userId.toString());
@@ -63,7 +63,7 @@ public class UserDao {
     public User findByName(String userName) throws Exception {
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             String sql = "SELECT * FROM users WHERE user_name = ?";
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, userName);
@@ -96,7 +96,7 @@ public class UserDao {
         Connection con = null;
         int newCount = 0;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             con.setAutoCommit(false);
 
             // 1. カウントアップ
@@ -143,7 +143,7 @@ public class UserDao {
     public void resetLoginAttempt(UUID userId) throws DaoException {
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             String sql = "UPDATE users SET login_attempt_count = 0 WHERE user_id = ?";
             try (PreparedStatement ps = con.prepareStatement(sql)) {
                 ps.setString(1, userId.toString());
@@ -163,7 +163,7 @@ public class UserDao {
         Connection con = null;
 
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             con.setAutoCommit(false);
 
             // 1. ユーザー取得（排他ロック）
@@ -261,7 +261,7 @@ public class UserDao {
         Connection con = null;
 
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             con.setAutoCommit(false);
 
             // 1. ユーザーロック
@@ -329,7 +329,7 @@ public class UserDao {
         Connection con = null;
 
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
 
             String sql = "SELECT u.*, "
                        + "(SELECT COUNT(*) FROM payments p WHERE p.user_id = u.user_id) > 0 AS is_paid "
@@ -367,7 +367,7 @@ public class UserDao {
     public void unlockUser(UUID userId) throws DaoException {
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             con.setAutoCommit(false); 
 
             String sql = "UPDATE users SET is_lockout = FALSE, login_attempt_count = 0 WHERE user_id = ?";
@@ -391,7 +391,7 @@ public class UserDao {
     public void register(User user) throws Exception {
         Connection con = null;
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             
             // 1. 鍵ペア作成（実ロジック）
             KeyPair keyPair = PaymentSystem.createKeyPair();

@@ -18,12 +18,12 @@ public class PendingUserStore {
      * 仮登録ユーザーをDB（pending_usersテーブル）に保存する
      */
     public static void add(String token, User user) throws Exception {
-        DataSourceHolder dbHolder = new DataSourceHolder();
+        javax.sql.DataSource dataSource = new DataSourceHolder().dataSource; // 変更
         ConnectionCloser closer = new ConnectionCloser();
         Connection con = null;
 
         try {
-            con = dbHolder.getConnection();
+            con = dataSource.getConnection();
             
             // トークンとユーザー情報をINSERT
             String sql = "INSERT INTO pending_users (token, user_id, user_name, user_password, security_code) VALUES (?, ?, ?, ?, ?)";
@@ -49,13 +49,13 @@ public class PendingUserStore {
      * トークンからユーザー情報を取得し、DBから削除する（1回限り有効にするため）
      */
     public static User getAndRemove(String token) {
-        DataSourceHolder dbHolder = new DataSourceHolder();
+        javax.sql.DataSource dataSource = new DataSourceHolder().dataSource; // 変更
         ConnectionCloser closer = new ConnectionCloser();
         Connection con = null;
         User user = null;
 
         try {
-            con = dbHolder.getConnection();
+            con = dataSource.getConnection();
             con.setAutoCommit(false); // トランザクション開始
 
             // 1. データの取得

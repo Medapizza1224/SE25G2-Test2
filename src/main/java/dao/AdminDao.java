@@ -8,15 +8,19 @@ import entity.Admin;
 public class AdminDao {
     
     // DB接続用ユーティリティ（環境に合わせて適宜読み替えてください）
-    private DataSourceHolder dbHolder = new DataSourceHolder();
+    private final javax.sql.DataSource dataSource; // 変更
     private ConnectionCloser connectionCloser = new ConnectionCloser();
+
+    public AdminDao() { // 追加
+        this.dataSource = new DataSourceHolder().dataSource;
+    }
 
     public Admin findByLogin(String adminName, String password) throws Exception {
         Connection con = null;
         Admin admin = null;
 
         try {
-            con = dbHolder.getConnection();
+            con = this.dataSource.getConnection();
             // パスワードは本来ハッシュ化すべきですが、今回は平文で比較します
             String sql = "SELECT * FROM admins WHERE admin_name = ? AND admin_password = ?";
             

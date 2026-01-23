@@ -11,11 +11,11 @@ import entity.Product;
 import modelUtil.Failure;
 
 public class ProductDao {
-    private final DataSourceHolder dataSourceHolder;
+    private final javax.sql.DataSource dataSource; // 変更
     private final ConnectionCloser connectionCloser;
 
     public ProductDao() {
-        this.dataSourceHolder = new DataSourceHolder();
+        this.dataSource = new DataSourceHolder().dataSource; // 変更
         this.connectionCloser = new ConnectionCloser();
     }
 
@@ -24,7 +24,7 @@ public class ProductDao {
         List<Product> list = new ArrayList<>();
         Connection con = null;
         try {
-            con = dataSourceHolder.getConnection();
+            con = this.dataSource.getConnection();
             String sql = "SELECT * FROM products ORDER BY product_id";
             PreparedStatement ps = con.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
@@ -43,7 +43,7 @@ public class ProductDao {
     public Product findById(String id) throws DaoException {
         Connection con = null;
         try {
-            con = dataSourceHolder.getConnection();
+            con = this.dataSource.getConnection();
             String sql = "SELECT * FROM products WHERE product_id = ?";
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, id);
@@ -63,7 +63,7 @@ public class ProductDao {
     public void insert(Product p) throws DaoException {
         Connection con = null;
         try {
-            con = dataSourceHolder.getConnection();
+            con = this.dataSource.getConnection();
             String sql = "INSERT INTO products (product_id, product_name, category, price, image, sales_status, update_at) VALUES (?, ?, ?, ?, ?, ?, NOW())";
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, p.getProductId());
@@ -84,7 +84,7 @@ public class ProductDao {
     public void update(Product p) throws DaoException {
         Connection con = null;
         try {
-            con = dataSourceHolder.getConnection();
+            con = this.dataSource.getConnection();
             String sql = "UPDATE products SET product_name=?, category=?, price=?, image=?, sales_status=?, update_at=NOW() WHERE product_id=?";
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, p.getProductName());
@@ -110,7 +110,7 @@ public class ProductDao {
         Connection con = null;
 
         try {
-            con = dataSourceHolder.getConnection();
+            con = this.dataSource.getConnection();
             // ユーザー画面用なので、sales_status が '販売中' のものだけに絞り込むのが一般的です
             String sql = "SELECT * FROM products WHERE category = ? AND sales_status = '販売中' ORDER BY product_id";
             

@@ -7,8 +7,14 @@ import java.util.UUID;
 import entity.OrderItem;
 
 public class OrderItemDao {
-    private final DataSourceHolder dataSourceHolder = new DataSourceHolder();
-    private final ConnectionCloser connectionCloser = new ConnectionCloser();
+    private final javax.sql.DataSource dataSource; // 変更
+    private final ConnectionCloser connectionCloser;
+
+    public OrderItemDao() {
+        this.dataSource = new DataSourceHolder().dataSource; // 変更
+        this.connectionCloser = new ConnectionCloser();
+    }
+
 
     // 注文明細の一括登録
     public void insertBatch(Connection con, List<OrderItem> items, String orderId) throws SQLException {
@@ -33,7 +39,7 @@ public class OrderItemDao {
         List<OrderItem> list = new ArrayList<>();
         Connection con = null;
         try {
-            con = dataSourceHolder.getConnection();
+            con = this.dataSource.getConnection();
             String sql = "SELECT oi.*, p.product_name, p.image FROM order_items oi JOIN products p ON oi.product_id = p.product_id WHERE oi.order_id = ? ORDER BY oi.add_order_at DESC";
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, orderId);
@@ -58,7 +64,7 @@ public class OrderItemDao {
     public boolean hasUnservedItems(String orderId) throws DaoException {
         Connection con = null;
         try {
-            con = dataSourceHolder.getConnection();
+            con = this.dataSource.getConnection();
             // 調理中（提供されていない）商品が1つでもあるか
             String sql = "SELECT COUNT(*) FROM order_items WHERE order_id = ? AND order_status = '調理中'";
             PreparedStatement ps = con.prepareStatement(sql);
@@ -77,7 +83,7 @@ public class OrderItemDao {
         List<OrderItem> list = new ArrayList<>();
         Connection con = null;
         try {
-            con = dataSourceHolder.getConnection();
+            con = this.dataSource.getConnection();
             String sql = "SELECT oi.*, p.product_name, o.table_number FROM order_items oi JOIN products p ON oi.product_id = p.product_id JOIN orders o ON oi.order_id = o.order_id WHERE oi.order_status = '調理中' ORDER BY oi.add_order_at ASC";
             PreparedStatement ps = con.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
@@ -98,7 +104,7 @@ public class OrderItemDao {
     public void updateStatus(String orderItemId, String status) throws DaoException {
         Connection con = null;
         try {
-            con = dataSourceHolder.getConnection();
+            con = this.dataSource.getConnection();
             String sql = "UPDATE order_items SET order_status = ?, order_completed_at = NOW() WHERE order_item_id = ?";
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, status);
@@ -111,7 +117,7 @@ public class OrderItemDao {
     public int countUnservedItems(String orderId) throws DaoException {
         Connection con = null;
         try {
-            con = dataSourceHolder.getConnection();
+            con = this.dataSource.getConnection();
             String sql = "SELECT SUM(quantity) FROM order_items WHERE order_id = ? AND order_status = '調理中'";
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, orderId);

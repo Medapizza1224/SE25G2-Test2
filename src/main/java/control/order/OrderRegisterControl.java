@@ -17,7 +17,7 @@ public class OrderRegisterControl {
             return new OrderRegisterResult(false, "カートが空です");
         }
 
-        DataSourceHolder db = new DataSourceHolder();
+        javax.sql.DataSource dataSource = new DataSourceHolder().dataSource;
         ConnectionCloser closer = new ConnectionCloser();
         Connection con = null;
 
@@ -43,7 +43,7 @@ public class OrderRegisterControl {
                 return new OrderRegisterResult(false, msg);
             }
 
-            con = db.getConnection();
+            con = dataSource.getConnection();
             con.setAutoCommit(false); // トランザクション開始
 
             // 4. OrderItemテーブルへの登録
