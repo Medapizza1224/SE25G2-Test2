@@ -18,81 +18,99 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>注文メニュー</title>
-<style>
-        :root {
-            --main-color: ${not empty conf.themeColor ? conf.themeColor : '#FF6900'};
-        }
+    <style>
+            :root {
+                --main-color: ${not empty conf.themeColor ? conf.themeColor : '#FF6900'};
+            }
 
-        body { margin: 0; padding: 0; font-family: "Helvetica Neue", Arial, sans-serif; height: 100vh; display: flex; flex-direction: column; color: #333; overflow: hidden; }
-        a { text-decoration: none; }
-        
-        .header { padding: 0 20px; background: #333; color: #fff; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; height: 60px; }
-        .header-title { font-size: 18px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
-        .logo-invert { filter: invert(1); height: 24px; }
-        .table-no { background: var(--main-color); padding: 5px 10px; border-radius: 4px; font-weight: bold; }
+            body { margin: 0; padding: 0; font-family: "Helvetica Neue", Arial, sans-serif; height: 100vh; display: flex; flex-direction: column; color: #333; }
+            a { text-decoration: none; }
+            
+            .header { padding: 0 20px; background: #333; color: #fff; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; height: 60px; }
+            .header-title { font-size: 18px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+            .logo-invert { filter: invert(1); height: 24px; }
+            .table-no { background: var(--main-color); padding: 5px 10px; border-radius: 4px; font-weight: bold; }
 
-        .container { display: flex; flex: 1; overflow: hidden; height: calc(100vh - 60px); }
+            .container { display: flex; flex: 1; overflow: hidden; }
 
-        /* 左：商品エリア */
-        .main-area { flex: 1; display: flex; flex-direction: column; background: #f4f4f4; border-right: 1px solid #ddd; min-width: 0; }
-        
-        .category-bar { padding: 10px; background: #fff; display: flex; gap: 10px; overflow-x: auto; border-bottom: 1px solid #ddd; flex-shrink: 0; }
-        .cat-btn { padding: 10px 20px; background: #eee; color: #333; border-radius: 30px; font-weight: bold; white-space: nowrap; font-size: 14px; display: flex; align-items: center; gap: 5px; }
-        .cat-btn.active { background: var(--main-color); color: #fff; }
-        .cat-icon { width: 18px; height: 18px; object-fit: contain; }
+            .main-area { flex: 1; display: flex; flex-direction: column; background: #f4f4f4; border-right: 1px solid #ddd; min-width: 0; }
+            
+            .category-bar { padding: 10px; background: #fff; display: flex; gap: 10px; overflow-x: auto; border-bottom: 1px solid #ddd; flex-shrink: 0; }
+            .cat-btn { padding: 10px 20px; background: #eee; color: #333; border-radius: 30px; font-weight: bold; white-space: nowrap; font-size: 14px; display: flex; align-items: center; gap: 5px; }
+            .cat-btn.active { background: var(--main-color); color: #fff; }
+            .cat-icon { width: 18px; height: 18px; object-fit: contain; }
 
-        /* --- 修正ポイント：パーセント指定で横4列を死守 --- */
-        .product-grid { 
-            padding: 20px; 
-            display: grid; 
-            /* 23%にすることで、余白を含めてちょうど「横4列」になります。幅が狭まれば自動で3列、2列に変わります */
-            grid-template-columns: repeat(auto-fill, minmax(min(100%, 23%), 1fr)); 
-            gap: 20px; 
-            overflow-y: auto; 
-            flex: 1; 
-            min-height: 0; 
-            align-content: start;
-        }
+            /* --- 修正ポイント：横4列固定 ＋ 縦方向の重なりを解消 --- */
+            .product-grid { 
+                padding: 20px; 
+                display: grid; 
+                /* PCでは常に横4列に固定 (1fr × 4) */
+                grid-template-columns: repeat(4, 1fr); 
+                /* ★重要：行の高さを「中身の最大値」に自動合わせすることで重なりを防止 */
+                grid-auto-rows: min-content; 
+                gap: 20px; 
+                overflow-y: auto; 
+                flex: 1; 
+                min-height: 0; 
+                align-content: start;
+            }
 
-        .product-card { 
-            background: #fff; border-radius: 12px; overflow: hidden; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; 
-            display: flex; flex-direction: column;
-            height: fit-content;
-        }
+            .product-card { 
+                background: #fff; border-radius: 12px; overflow: hidden; 
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; 
+                display: flex; flex-direction: column;
+                /* ★重要：高さを固定せず、中身に合わせて伸びるようにする */
+                height: 100%; 
+            }
 
-        /* --- 修正ポイント：重なりを物理的に防ぐ --- */
-        .p-img { 
-            width: 100%; 
-            aspect-ratio: 4 / 3; /* 画像の高さを比率で固定（絶対重ならない） */
-            object-fit: cover; 
-            background: #ddd; 
-            display: block;
-        }
+            .p-img { 
+                width: 100%; 
+                aspect-ratio: 4 / 3; 
+                object-fit: cover; 
+                background: #ddd; 
+                display: block;
+                flex-shrink: 0;
+            }
 
-        .p-info { padding: 15px; flex-grow: 1; }
-        .p-name { font-weight: bold; font-size: 16px; margin-bottom: 8px; line-height: 1.4; }
-        .p-price { color: var(--main-color); font-weight: bold; font-size: 16px; }
+            .p-info { 
+                padding: 15px; 
+                flex-grow: 1; 
+                display: flex; 
+                flex-direction: column;
+            }
 
-        /* サイドバー：1920以上の画面でバランスが良い幅に固定 */
-        .sidebar { width: 380px; flex-shrink: 0; background: #fff; display: flex; flex-direction: column; box-shadow: -2px 0 10px rgba(0,0,0,0.05); z-index: 10; }
-        .cart-header { padding: 20px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 18px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-        
-        .cart-list { flex: 1; overflow-y: auto; padding: 10px; min-height: 0; }
-        .cart-item { display: flex; gap: 10px; padding: 12px; border-bottom: 1px solid #f9f9f9; align-items: center; }
-        .c-img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; }
-        
-        .cart-footer { padding: 20px; background: #fff; border-top: 1px solid #eee; flex-shrink: 0; }
-        .total-row { display: flex; justify-content: space-between; font-size: 20px; font-weight: bold; margin-bottom: 20px; }
-        .order-btn { display: block; width: 100%; padding: 18px; background: var(--main-color); color: #fff; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; text-align: center; }
-        
-        .sub-menu { display: flex; gap: 10px; margin-top: 15px; }
-        .sub-btn { flex: 1; padding: 12px; background: #333; color: #fff; border-radius: 8px; text-align: center; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+            /* ★重要：商品名が長すぎても重ならないよう制限をかける（2行まで） */
+            .p-name { 
+                font-weight: bold; 
+                font-size: 16px; 
+                line-height: 1.4; 
+                margin-bottom: 8px;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                word-break: break-all;
+            }
 
-        /* ブラウザの標準スクロールバーを少し細くして場所を取らないようにする */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-    </style>
+            .p-price { 
+                color: var(--main-color); 
+                font-weight: bold; 
+                font-size: 16px; 
+                margin-top: auto; /* 価格を常にカードの下端に寄せる */
+            }
+
+            /* サイドバー幅を安定させる */
+            .sidebar { width: 380px; flex-shrink: 0; background: #fff; display: flex; flex-direction: column; box-shadow: -2px 0 10px rgba(0,0,0,0.05); z-index: 10; }
+            .cart-header { padding: 20px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 18px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+            .cart-list { flex: 1; overflow-y: auto; padding: 10px; min-height: 0; }
+            .cart-item { display: flex; gap: 10px; padding: 12px; border-bottom: 1px solid #f9f9f9; align-items: center; }
+            .c-img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; }
+            .cart-footer { padding: 20px; background: #fff; border-top: 1px solid #eee; flex-shrink: 0; }
+            .total-row { display: flex; justify-content: space-between; font-size: 20px; font-weight: bold; margin-bottom: 20px; }
+            .order-btn { display: block; width: 100%; padding: 18px; background: var(--main-color); color: #fff; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; text-align: center; }
+            .sub-menu { display: flex; gap: 10px; margin-top: 15px; }
+            .sub-btn { flex: 1; padding: 12px; background: #333; color: #fff; border-radius: 8px; text-align: center; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+        </style>
 </head>
 <body>
     <!-- ヘッダー -->
