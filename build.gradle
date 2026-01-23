@@ -1,6 +1,7 @@
 plugins {
 	id 'java'
 	id 'org.gretty' version '4.1.4'
+	id 'war'
 }
 
 java {
@@ -26,9 +27,6 @@ dependencies {
 	// MySQL Support
 	implementation 'com.zaxxer:HikariCP:5.1.0'
 	runtimeOnly 'com.mysql:mysql-connector-j:8.4.0'
-
-	// ★ここに追加してください（メール送信機能用）
-	implementation 'com.sun.mail:jakarta.mail:2.0.1'
 
 	// Test Support
 	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-api:5.10.2'
