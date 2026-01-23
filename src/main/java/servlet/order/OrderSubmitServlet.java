@@ -26,12 +26,12 @@ public class OrderSubmitServlet extends HttpServlet {
 
         if (result.isSuccess()) {
             cart.clear();
-            response.sendRedirect(request.getContextPath() + "/OrderComplete");
+            // ★修正: OrderComplete ではなく、新設する OrderReceived へ遷移
+            response.sendRedirect(request.getContextPath() + "/OrderReceived");
         } else {
-            // ★変更: 共通エラー画面へ遷移
             request.setAttribute("errorTitle", "注文エラー");
             request.setAttribute("errorMessage", result.getMessage());
-            request.setAttribute("nextUrl", "/OrderHome"); // メニューへ戻る
+            request.setAttribute("nextUrl", "/OrderHome");
             request.setAttribute("nextLabel", "メニューへ戻る");
             request.getRequestDispatcher("/WEB-INF/common_error.jsp").forward(request, response);
         }

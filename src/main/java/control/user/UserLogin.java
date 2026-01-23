@@ -35,7 +35,7 @@ public class UserLogin {
                 if (remaining <= 0) {
                     throw new Failure("アカウントがロックされました。管理者に連絡してください。");
                 } else {
-                    throw new Failure("パスワードが違います。\nあと" + remaining + "回失敗するとロックされます。");
+                    throw new Failure("ユーザー名かパスワードが違います。\nあと" + remaining + "回失敗するとロックされます。");
                 }
             }
 

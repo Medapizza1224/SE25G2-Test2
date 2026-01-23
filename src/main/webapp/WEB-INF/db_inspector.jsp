@@ -119,6 +119,9 @@
         .uuid { font-family: monospace; color: #666; font-size: 11px; }
         .hash { font-family: monospace; color: #888; font-size: 10px; display:inline-block; max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .price { font-weight: bold; color: #333; }
+        
+        /* パスワード等の長い文字列用 */
+        .long-text { font-family: monospace; font-size: 10px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: middle; }
     </style>
 </head>
 <body>
@@ -137,6 +140,7 @@
     <!-- ナビゲーションバー -->
     <div class="sticky-nav">
         <a href="#users" class="nav-link">Users</a>
+        <a href="#pending" class="nav-link">Pending Users</a>
         <a href="#admins" class="nav-link">Admins</a>
         <a href="#products" class="nav-link">Products</a>
         <a href="#orders" class="nav-link">Orders</a>
@@ -166,8 +170,9 @@
                                 <tr>
                                     <td class="uuid">${u.userId}</td>
                                     <td>${u.userName}</td>
-                                    <td>***</td>
-                                    <td>***</td>
+                                    <!-- パスワードとセキュリティコードを表示に変更 -->
+                                    <td><span class="long-text" title="${u.userPassword}">${u.userPassword}</span></td>
+                                    <td>${u.securityCode}</td>
                                     <td class="price">¥ <fmt:formatNumber value="${u.balance}" /></td>
                                     <td>${u.point} pt</td>
                                     <td>${u.lockout ? '<span style="color:red">Yes</span>' : 'No'}</td>
@@ -178,6 +183,36 @@
                 </c:choose>
             </div>
         </div>
+
+        <!-- ★追加: PENDING USERS (Usersの下に追加) -->
+        <div id="pending" class="section">
+            <div class="section-header">
+                <div class="section-title">Pending Users (Mail Auth Wait)</div>
+                <div class="record-count">${fn:length(result.pendingUsers)} records</div>
+            </div>
+            <div class="table-wrap">
+                <c:choose>
+                    <c:when test="${empty result.pendingUsers}">
+                        <div class="no-data">データがありません</div>
+                    </c:when>
+                    <c:otherwise>
+                        <table>
+                            <tr><th>Token</th><th>Temp User ID</th><th>Name(Email)</th><th>Code</th><th>Created At</th></tr>
+                            <c:forEach var="pu" items="${result.pendingUsers}">
+                                <tr>
+                                    <td><span class="hash">${pu.token}</span></td>
+                                    <td class="uuid">${pu.userId}</td>
+                                    <td>${pu.userName}</td>
+                                    <td>${pu.securityCode}</td>
+                                    <td style="font-size:11px;">${pu.createdAt}</td>
+                                </tr>
+                            </c:forEach>
+                        </table>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+        </div>
+
 
         <!-- 2. ADMINS -->
         <div id="admins" class="section">

@@ -19,7 +19,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>決済完了</title>
     <script>
         window.addEventListener('pageshow', function(event) {
@@ -39,6 +39,11 @@
             display: flex;
             justify-content: center;
             color: #333;
+            /* ノッチ対応 + 余白追加 */
+            padding-top: calc(env(safe-area-inset-top) + 20px);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
         }
         .mobile-container {
             width: 100%; max-width: 420px; background: #fff; min-height: 100vh;
@@ -46,15 +51,17 @@
             box-shadow: 0 0 15px rgba(0,0,0,0.1);
         }
 
+        /* ヘッダー (ユーザーホームと統一) */
         .header {
-            display: flex; justify-content: center; align-items: center; padding: 15px;
-            background: #fff; position: relative; border-bottom: 1px solid #f9f9f9;
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px 20px; border-bottom: 1px solid #f9f9f9;
+            background: #fff; height: 60px; box-sizing: border-box;
         }
-        .logo-img { height: 28px; width: auto; }
+        .header-logo { height: 28px; width: auto; object-fit: contain; }
         
-        .logout-btn { 
-            position: absolute; right: 20px; 
+        .icon-btn { 
             text-decoration: none; display: flex; align-items: center; justify-content: center;
+            width: 40px; height: 40px;
         }
         .icon-img { width: 24px; height: 24px; object-fit: contain; }
 
@@ -107,8 +114,12 @@
 <body>
     <div class="mobile-container">
         <div class="header">
-            <img src="${pageContext.request.contextPath}/image/logo/logo.svg?v=${applicationScope.logoVersion}" alt="ロゴ" class="logo-img">
-            <a href="${pageContext.request.contextPath}/User?action=logout" class="logout-btn" title="ログアウト">
+            <!-- 左スペース (ホームと同じ3要素構成にするため) -->
+            <div style="width: 40px;"></div>
+            
+            <img src="${pageContext.request.contextPath}/image/logo/logo.svg?v=${applicationScope.logoVersion}" alt="ロゴ" class="header-logo">
+            
+            <a href="${pageContext.request.contextPath}/User?action=logout" class="icon-btn" title="ログアウト">
                 <img src="${pageContext.request.contextPath}/image/system/ログアウト.svg" class="icon-img" alt="ログアウト">
             </a>
         </div>

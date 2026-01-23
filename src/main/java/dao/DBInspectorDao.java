@@ -17,6 +17,28 @@ public class DBInspectorDao {
         this.connectionCloser = new ConnectionCloser();
     }
 
+    // ★追加: PendingUser取得メソッド
+    public List<PendingUser> getAllPendingUsers() {
+        List<PendingUser> list = new ArrayList<>();
+        Connection con = null;
+        try {
+            con = dbHolder.getConnection();
+            PreparedStatement ps = con.prepareStatement("SELECT * FROM pending_users ORDER BY created_at DESC");
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()) {
+                list.add(new PendingUser(
+                    rs.getString("token"),
+                    rs.getString("user_id"),
+                    rs.getString("user_name"),
+                    rs.getString("security_code"),
+                    rs.getTimestamp("created_at")
+                ));
+            }
+        } catch (Exception e) { e.printStackTrace(); } 
+        finally { connectionCloser.closeConnection(con); }
+        return list;
+    }
+
     public List<Admin> getAllAdmins() {
         List<Admin> list = new ArrayList<>();
         Connection con = null;

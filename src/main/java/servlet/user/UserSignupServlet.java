@@ -71,6 +71,8 @@ public class UserSignupServlet extends HttpServlet {
             user.setUserName(userName);
             user.setUserPassword(password);
             user.setSecurityCode(securityCode);
+            String hashedCode = servlet.system.PaymentSystem.calculateHash(securityCode);
+            user.setSecurityCode(hashedCode);
             user.setBalance(10000); // 初回特典
             user.setPoint(0);
             user.setLoginAttemptCount(0);

@@ -19,7 +19,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>決済画面</title>
     <script>
         window.addEventListener('pageshow', function(event) {
@@ -40,6 +40,11 @@
             justify-content: center;
             height: 100vh;
             color: #333;
+            
+            padding-top: calc(env(safe-area-inset-top) + 20px);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
         }
 
         .mobile-container {
@@ -48,30 +53,39 @@
             box-shadow: 0 0 15px rgba(0,0,0,0.1); overflow: hidden;
         }
 
+        /* ヘッダー */
         .header {
             display: flex; justify-content: space-between; align-items: center;
             padding: 15px 20px; border-bottom: 1px solid #eee; background: #fff;
+            height: 60px; box-sizing: border-box;
         }
-        .header-title { font-weight: bold; font-size: 16px; }
+        
+        .header-logo { height: 28px; width: auto; object-fit: contain; }
         
         .icon-btn { 
             font-size: 20px; text-decoration: none; color: #333; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
+            width: 40px; height: 40px;
         }
-        .icon-img {
-            width: 24px; height: 24px; object-fit: contain;
-        }
+        .icon-img { width: 24px; height: 24px; object-fit: contain; }
 
         .content {
             flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-y: auto;
         }
 
+        /* --- 画面1: 金額入力エリア --- */
+        #view-payment {
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center;
+            transition: transform 0.3s ease;
+        }
+
         .total-box {
             background-color: #000; color: #fff;
-            width: 100%; border-radius: 12px; padding: 30px 20px; text-align: center;
+            width: 90%; border-radius: 12px; padding: 33px 20px; text-align: center;
             margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
-        .total-label { font-size: 12px; margin-bottom: 5px; opacity: 0.8; }
+        .total-label { text-align: left; font-size: 12px; margin-bottom: 5px; opacity: 0.8; }
         .total-amount { font-size: 42px; font-weight: bold; letter-spacing: -1px; }
 
         .input-group { width: 100%; margin-bottom: 20px; }
@@ -103,9 +117,9 @@
             width: 80%; padding: 16px;
             background-color: var(--main-color);
             color: white; border: none; border-radius: 30px;
-            font-size: 18px; font-weight: bold; cursor: pointer;
+            font-size: 24px; font-weight: bold; cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            text-align: center; margin-top: auto;
+            text-align: center; margin-top: 40px;
         }
         .main-btn:disabled { background-color: #ccc; box-shadow: none; }
 
@@ -119,6 +133,14 @@
 
         .security-title { margin-top: 80px; font-size: 16px; font-weight: bold; margin-bottom: 30px; }
         
+        /* エラーメッセージ用スタイル (セキュリティ画面) */
+        .security-error-msg {
+            color: #FF0000; font-weight: bold; font-size: 14px; 
+            margin-bottom: 20px; text-align: center;
+            /* 改行を反映 */
+            white-space: pre-wrap; 
+        }
+
         .indicator-box { display: flex; gap: 15px; margin-bottom: 60px; }
         .dot {
             width: 16px; height: 16px; border-radius: 50%;
@@ -139,7 +161,7 @@
 
         .toast {
             position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            background-color: #0099ff; color: #fff; padding: 10px 20px;
+            color: #ccc; padding: 10px 20px;
             font-size: 12px; border-radius: 4px; opacity: 0; transition: opacity 0.3s;
         }
         .toast.show { opacity: 1; }
@@ -160,7 +182,9 @@
                 <a href="${pageContext.request.contextPath}/user_home" class="icon-btn">
                     <img src="${pageContext.request.contextPath}/image/system/ホーム.svg" class="icon-img" alt="ホーム">
                 </a>
-                <div class="header-title">焼肉〇〇</div>
+                
+                <img src="${pageContext.request.contextPath}/image/logo/logo.svg?v=${applicationScope.logoVersion}" alt="焼肉〇〇" class="header-logo">
+                
                 <a href="${pageContext.request.contextPath}/User?action=logout" class="icon-btn" title="ログアウト">
                     <img src="${pageContext.request.contextPath}/image/system/ログアウト.svg" class="icon-img" alt="ログアウト">
                 </a>
@@ -200,12 +224,18 @@
 
         <div id="view-security">
             <div class="header" style="width:100%; box-sizing:border-box;">
+                <!-- 左矢印ボタンは、通常時は「戻る」だが、エラー後などロックされたら押させたくない場合も考慮 -->
                 <div class="icon-btn" onclick="toggleView(false)" style="font-size: 24px;">←</div>
-                <div class="header-title">焼肉〇〇</div>
+                <img src="${pageContext.request.contextPath}/image/logo/logo.svg?v=${applicationScope.logoVersion}" alt="焼肉〇〇" class="header-logo">
                 <div class="icon-btn" style="visibility:hidden">?</div>
             </div>
 
             <div class="security-title">セキュリティコードを入力</div>
+
+            <!-- ★追加: エラーメッセージ表示エリア -->
+            <c:if test="${not empty paymentError}">
+                <div class="security-error-msg">${paymentError}</div>
+            </c:if>
 
             <div class="indicator-box">
                 <div class="dot" id="dot-0"></div>
@@ -228,12 +258,11 @@
                 <button class="key-btn" onclick="inputDigit(0)">0</button>
                 <button class="key-btn" onclick="deleteDigit()">⌫</button>
             </div>
-            <div id="completeToast" class="toast">正しいコードを入力完了</div>
+            
+            <div id="completeToast" class="toast">処理中...</div>
         </div>
-
     </div>
-
-    <!-- Script部分は変更なしのため省略 -->
+    
     <script>
         const totalAmount = ${order.totalAmount};
         const userBalance = ${user.balance};
@@ -257,6 +286,18 @@
                 toggleView(true);
             }
         });
+
+        // ★追加: ページロード時にエラーがあれば、自動でセキュリティ画面を開く
+        window.onload = function() {
+            const hasError = "${not empty paymentError}" === "true";
+            if (hasError) {
+                // ポイント入力等をスキップしてセキュリティ画面へ
+                // ※本来はリクエストパラメータから入力値を復元すべきだが、
+                //   今回は簡易的に「全額支払い状態」として画面を開く
+                hiddenAmount.value = finalPayAmount;
+                toggleView(true);
+            }
+        };
 
         function validateAmount() {
             let inputPoints = parseInt(usePointsInput.value) || 0;
@@ -289,6 +330,7 @@
             const secView = document.getElementById('view-security');
             if (showSecurity) {
                 secView.classList.add('active');
+                // 入力はリセット
                 securityCode = "";
                 updateDots();
             } else {
@@ -328,9 +370,10 @@
             const toast = document.getElementById('completeToast');
             toast.classList.add('show');
             hiddenSecurityCode.value = securityCode;
+            // 少し待って送信
             setTimeout(() => {
                 paymentForm.submit();
-            }, 500);
+            }, 300);
         }
     </script>
 </body>

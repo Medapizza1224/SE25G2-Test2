@@ -3,7 +3,6 @@ package filter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebFilter;
@@ -12,25 +11,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-/**
- * 注文端末（tableNumberを持つセッション）が、
- * 許可された注文関連画面以外にアクセスした場合に
- * セッションを破棄して強制ログアウトさせるフィルター。
- */
 @WebFilter("/*")
 public class OrderSessionFilter extends HttpFilter {
 
-    // 注文端末がアクセスしてもよいパスのリスト（前方一致または完全一致で使用）
-    private static final List<String> ALLOWED_PATHS = Arrays.asList(
-        "/Order",              // 注文ログイン, ホーム, 履歴, カートなど (/Order~ で始まるもの全て)
-        "/CustomerCount",      // 人数選択
-        "/ProductDetail",      // 商品詳細
-        "/ShowQr",             // 決済QR表示
-        "/PaymentSelect",
-        "/CheckPaymentStatus", // 決済状況確認API
-        "/image/",             // 画像リソース
-        "/css/",               // CSSリソース
-        "/js/"                 // JSリソース
+    // 客が操作中にアクセスを許可するパス
+    private static final List<String> ORDER_FLOW_PATHS = Arrays.asList(
+        "/OrderHome", "/CustomerCount", "/ProductDetail", "/ShowQr", 
+        "/PaymentSelect", "/CheckPaymentStatus", "/OrderComplete", 
+        "/OrderReceived", "/OrderReset", "/OrderSubmit"
     );
 
     @Override
@@ -38,33 +26,52 @@ public class OrderSessionFilter extends HttpFilter {
             throws IOException, ServletException {
 
         HttpSession session = request.getSession(false);
-        
-        // 1. セッションがあり、かつ「注文端末(tableNumberあり)」としてログイン中か確認
-        if (session != null && session.getAttribute("tableNumber") != null) {
-            
-            String path = request.getServletPath();
-            
-            // 2. アクセスしようとしているパスが「許可リスト」に含まれているかチェック
-            boolean isAllowed = false;
-            for (String allowed : ALLOWED_PATHS) {
-                if (path.startsWith(allowed)) {
-                    isAllowed = true;
-                    break;
-                }
-            }
+        String path = request.getServletPath();
 
-            // 3. 許可されていないパス（例: /User, /Admin など）へのアクセスなら
-            if (!isAllowed) {
-                // セッションを破棄（ログアウト扱い）
-                session.invalidate();
-                
-                // 注文端末のログイン画面へ強制送還
+        // 1. 公開リソースとログイン入口は常に許可
+        if (path.startsWith("/image/") || path.startsWith("/css/") || path.startsWith("/js/") || 
+            path.equals("/DB") || path.equals("/Admin") || path.equals("/Order") || path.equals("/User")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
+        // 2. 管理者ツール (/Admin... /admin-setup)
+        if (path.startsWith("/Admin") || path.equals("/admin-setup")) {
+            if (session == null || session.getAttribute("adminNameManagement") == null) {
+                response.sendRedirect(request.getContextPath() + "/Admin");
+                return;
+            }
+            chain.doFilter(request, response);
+            return;
+        }
+
+        // 3. 端末設定画面 (/OrderSetup) 
+        // 卓番が決まる前の画面なので、terminalSetupAuthのみをチェックする
+        if (path.equals("/OrderSetup")) {
+            if (session == null || session.getAttribute("terminalSetupAuth") == null) {
                 response.sendRedirect(request.getContextPath() + "/Order");
-                return; // 処理をここで中断
+                return;
+            }
+            chain.doFilter(request, response);
+            return;
+        }
+
+        // 4. 注文端末の実操作画面 (メニューなど)
+        boolean isOrderPath = false;
+        for (String op : ORDER_FLOW_PATHS) {
+            if (path.startsWith(op)) {
+                isOrderPath = true;
+                break;
+            }
+        }
+        if (isOrderPath) {
+            // 卓番(tableNumber)がなければ設定画面へ戻す
+            if (session == null || session.getAttribute("tableNumber") == null) {
+                response.sendRedirect(request.getContextPath() + "/Order");
+                return;
             }
         }
 
-        // 問題なければ次の処理へ
         chain.doFilter(request, response);
     }
 }

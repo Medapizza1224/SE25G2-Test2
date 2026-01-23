@@ -19,7 +19,7 @@
         }
         .container { 
             width: 100%;
-            max-width: 360px;
+            max-width: 420px;
             padding: 40px 20px;
             display: flex;
             flex-direction: column;
@@ -39,12 +39,12 @@
         }
 
         h2 { 
-            font-size: 24px; 
+            font-size: 22px; 
             font-weight: bold;
             margin-bottom: 20px; 
         }
         p {
-            font-size: 15px;
+            font-size: 12px;
             line-height: 1.8;
             color: #666;
             margin-bottom: 50px;
@@ -66,7 +66,6 @@
         }
         .btn:hover { opacity: 0.8; }
         .btn:active { transform: scale(0.98); }
-        
     </style>
 </head>
 <body>

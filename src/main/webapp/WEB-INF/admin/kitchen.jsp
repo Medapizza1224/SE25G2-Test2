@@ -131,7 +131,11 @@
         }
         updateTimers();
         setInterval(updateTimers, 1000);
-        setTimeout(() => location.reload(), 30000);
+
+        // 10秒ごとにリロードして最新の注文状況（調理中）を反映
+        setTimeout(() => {
+            location.reload();
+        }, 10000);
     </script>
 </body>
 </html>

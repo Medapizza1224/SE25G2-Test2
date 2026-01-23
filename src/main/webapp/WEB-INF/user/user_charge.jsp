@@ -19,7 +19,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>チャージ</title>
     <script>
         window.addEventListener('pageshow', function(event) {
@@ -34,55 +34,81 @@
         }
         body {
             font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
-            background-color: #F8F7F5;
+            background-color: #F8F7F5; /* 元の背景色に戻す */
             margin: 0;
             display: flex;
             justify-content: center;
             color: #333;
+            
+            /* ノッチ対応 + 余白追加 */
+            padding-top: calc(env(safe-area-inset-top) + 20px);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
         }
         .container {
             width: 100%;
             max-width: 420px;
-            background: transparent;
+            background: transparent; /* コンテナ自体は透明 */
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             position: relative;
         }
         
+        /* ヘッダー */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 25px;
-            background-color: #F8F7F5;
-            border: none;
-            margin-bottom: 10px;
+            padding: 15px 20px;
+            background: white;
+            border-bottom: 1px solid #eee;
+            height: 60px;
+            box-sizing: border-box;
         }
-        /* アイコン画像用スタイル */
-        .icon-img {
-            width: 32px;
-            height: 32px;
+        .header-logo {
+            height: 28px;
+            width: auto;
             object-fit: contain;
         }
-        /* リンクスタイル */
-        .home-link {
-            text-decoration: none;
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 10px;
+
+        .icon-btn { 
+            text-decoration: none; 
+            color: #333; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            width: 40px; 
+            height: 40px;
+        }
+        .icon-img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+        }
+        
+        /* 戻る用 */
+        .back-text {
+            font-size: 14px;
             font-weight: bold;
+            color: #333;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
         }
 
-        .header-title { font-weight: bold; font-size: 18px; letter-spacing: 1px; }
-
+        /* コンテンツエリア (白い角丸カード) */
         .content { 
-            background: white; margin: 0 15px 30px 15px; padding: 30px 25px;
-            border-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); flex: 1;
+            background: white; 
+            margin: 15px 15px 30px 15px; 
+            padding: 30px 25px;
+            border-radius: 24px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+            flex: 1;
         }
 
+        /* 以下、チャージ画面固有のデザイン */
         .balance-card {
             background-color: var(--main-color);
             color: white;
@@ -154,22 +180,26 @@
 </head>
 <body>
     <div class="container">
+        <!-- ヘッダー (ホーム画面と共通レイアウト) -->
         <div class="header">
+            <!-- 左側ボタン -->
             <c:choose>
                 <c:when test="${param.returnTo == 'payment'}">
-                    <a href="${pageContext.request.contextPath}/UserPayment?orderId=${param.orderId}" class="home-link">
-                        <div style="font-size: 20px;">↩</div>
-                        <div>戻る</div>
+                    <a href="${pageContext.request.contextPath}/UserPayment?orderId=${param.orderId}" class="back-text">
+                        <span style="font-size:20px; margin-right:5px;">‹</span> 戻る
                     </a>
                 </c:when>
                 <c:otherwise>
-                    <a href="${pageContext.request.contextPath}/user_home" class="home-link">
+                    <a href="${pageContext.request.contextPath}/user_home" class="icon-btn">
                         <img src="${pageContext.request.contextPath}/image/system/ホーム.svg" class="icon-img" alt="ホーム">
-                        <div style="margin-top:2px;">ホーム</div>
                     </a>
                 </c:otherwise>
             </c:choose>
-            <div class="header-title">チャージ</div>
+            
+            <!-- 中央ロゴ -->
+            <img src="${pageContext.request.contextPath}/image/logo/logo.svg?v=${applicationScope.logoVersion}" alt="焼肉〇〇" class="header-logo">
+            
+            <!-- 右側スペース調整 (ホームのログアウトボタン分のスペースを空けるか、空divを置く) -->
             <div style="width: 40px;"></div>
         </div>
 

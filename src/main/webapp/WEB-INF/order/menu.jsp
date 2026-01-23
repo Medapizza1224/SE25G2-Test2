@@ -32,6 +32,9 @@
             display: flex; align-items: center; gap: 10px;
         }
         
+        /* ロゴ反転用クラス */
+        .logo-invert { filter: invert(1); }
+
         .table-no { background: var(--main-color); padding: 5px 10px; border-radius: 4px; font-weight: bold; }
 
         .container { display: flex; flex: 1; overflow: hidden; }
@@ -58,7 +61,7 @@
 
         .product-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s; height: fit-content; }
         .product-card:active { transform: scale(0.98); }
-        .p-img { width: 100%; height: 140px; object-fit: cover; background: #ddd; }
+        .p-img { width: 100%; object-fit: cover; background: #ddd; }
         .p-info { padding: 15px; }
         .p-name { font-weight: bold; font-size: 16px; margin-bottom: 8px; }
         
@@ -67,6 +70,11 @@
         .sidebar { flex: 1; min-width: 320px; max-width: 400px; background: #fff; display: flex; flex-direction: column; box-shadow: -2px 0 10px rgba(0,0,0,0.05); z-index: 10; }
         .cart-header { padding: 20px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 18px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
         
+        /* システムアイコン用 */
+        .sys-icon { width: 24px; height: 24px; object-fit: contain; }
+        /* ボタン内の白アイコン用 */
+        .sys-icon-white { width: 20px; height: 20px; object-fit: contain; filter: invert(1); margin-right: 5px; vertical-align: text-bottom; }
+
         .cart-list { flex: 1; overflow-y: auto; padding: 10px; min-height: 0; }
         .cart-item { display: flex; gap: 10px; padding: 15px; border-bottom: 1px solid #f9f9f9; align-items: center; }
         .c-img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; background: #eee; }
@@ -83,15 +91,16 @@
         .order-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
 
         .sub-menu { display: flex; gap: 10px; margin-top: 15px; }
-        .sub-btn { flex: 1; padding: 12px; background: #333; color: #fff; border-radius: 8px; text-align: center; font-size: 14px; font-weight: bold; }
+        .sub-btn { flex: 1; padding: 12px; background: #333; color: #fff; border-radius: 8px; text-align: center; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+        .sub-btn:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
     <!-- ヘッダー -->
     <div class="header">
         <div class="header-title">
-            <!-- ロゴ画像 -->
-            <img src="${pageContext.request.contextPath}/image/logo/logo.svg?v=${applicationScope.logoVersion}" alt="ロゴ" style="height: 28px; vertical-align: middle;">
+            <!-- ロゴ画像 (白黒反転クラスを追加) -->
+            <img src="${pageContext.request.contextPath}/image/logo/logo.svg?v=${applicationScope.logoVersion}" alt="ロゴ" class="logo-invert" style="height: 28px; vertical-align: middle;">
         </div>
         <div class="table-no">卓番: ${sessionScope.tableNumber}</div>
     </div>
@@ -123,7 +132,7 @@
             <!-- 商品リスト -->
             <div class="product-grid">
                 <c:if test="${empty menuResult.productList}">
-                    <p style="padding:20px;">このカテゴリの商品は現在ありません。</p>
+                    <p style="padding:12px;">このカテゴリの商品は現在ありません。</p>
                 </c:if>
                 
                 <c:forEach var="p" items="${menuResult.productList}">
@@ -140,7 +149,11 @@
 
         <!-- 右：カートサイドバー -->
         <div class="sidebar">
-            <div class="cart-header">🛒 注文カゴ</div>
+            <div class="cart-header">
+                <!-- 注文カゴアイコン -->
+                <img src="${pageContext.request.contextPath}/image/system/注文カゴ.svg" class="sys-icon">
+                注文カゴ
+            </div>
             
             <div class="cart-list">
                 <c:if test="${empty sessionScope.cart.items}">
@@ -179,8 +192,16 @@
                 </form>
 
                 <div class="sub-menu">
-                    <a href="${pageContext.request.contextPath}/OrderHistory" class="sub-btn">📜 履歴</a>
-                    <a href="${pageContext.request.contextPath}/PaymentSelect" class="sub-btn">💳 会計</a>
+                    <a href="${pageContext.request.contextPath}/OrderHistory" class="sub-btn">
+                        <!-- 履歴アイコン -->
+                        <img src="${pageContext.request.contextPath}/image/system/履歴.svg" class="sys-icon-white">
+                        履歴
+                    </a>
+                    <a href="${pageContext.request.contextPath}/PaymentSelect" class="sub-btn">
+                        <!-- 会計アイコン -->
+                        <img src="${pageContext.request.contextPath}/image/system/会計.svg" class="sys-icon-white">
+                        会計
+                    </a>
                 </div>
             </div>
         </div>

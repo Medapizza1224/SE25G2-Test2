@@ -19,7 +19,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ホーム - 焼肉〇〇</title>
     <script>
         window.addEventListener('pageshow', function(event) {
@@ -39,6 +39,11 @@
             margin: 0;
             display: flex;
             justify-content: center;
+            /* ノッチ対応 + 余白追加 */
+            padding-top: calc(env(safe-area-inset-top) + 20px);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
         }
         .container {
             width: 100%;
@@ -59,8 +64,15 @@
             padding: 15px 20px;
             background: white;
             border-bottom: 1px solid #eee;
+            height: 60px;
+            box-sizing: border-box;
         }
-        .header-title { font-weight: bold; font-size: 16px; color: #333; }
+        
+        .header-logo {
+            height: 28px;
+            width: auto;
+            object-fit: contain;
+        }
         
         .icon-btn { 
             text-decoration: none; 
@@ -68,6 +80,8 @@
             display: flex; 
             align-items: center; 
             justify-content: center; 
+            width: 40px; 
+            height: 40px;
         }
         .icon-img {
             width: 24px;
@@ -118,7 +132,7 @@
             margin-top: 20px;
         }
         .qr-btn {
-            display: flex; /* アイコンと文字を横並びに */
+            display: flex;
             align-items: center;
             justify-content: center;
             width: 100%;
@@ -134,13 +148,12 @@
         }
         .qr-btn:active { transform: scale(0.98); }
         
-        /* カメラアイコン用のスタイル */
         .qr-icon-img { 
             width: 24px; 
             height: 24px; 
             margin-right: 10px; 
             object-fit: contain;
-            filter: invert(1); /* 黒背景で見えるように白く反転 */
+            filter: invert(1);
         }
 
         .welcome-msg {
@@ -152,13 +165,12 @@
 </head>
 <body>
     <div class="container">
-        <!-- ヘッダー -->
         <div class="header">
             <div class="icon-btn">
                 <img src="${pageContext.request.contextPath}/image/system/ホーム.svg" class="icon-img" alt="ホーム">
             </div>
             
-            <div class="header-title">焼肉〇〇</div>
+            <img src="${pageContext.request.contextPath}/image/logo/logo.svg?v=${applicationScope.logoVersion}" alt="焼肉〇〇" class="header-logo">
             
             <a href="${pageContext.request.contextPath}/User?action=logout" class="icon-btn" title="ログアウト">
                 <img src="${pageContext.request.contextPath}/image/system/ログアウト.svg" class="icon-img" alt="ログアウト">
@@ -185,7 +197,6 @@
 
             <div class="action-area">
                 <p style="color:#666; margin-bottom:10px; font-size:14px;">お会計はこちらから</p>
-                <!-- QRスキャンボタン -->
                 <a href="${pageContext.request.contextPath}/user_qr_scan" class="qr-btn">
                     <img src="${pageContext.request.contextPath}/image/system/カメラ.svg" class="qr-icon-img" alt="カメラ">
                     QRコードを読み取る

@@ -7,7 +7,7 @@ import jakarta.servlet.http.*;
 import control.DBInspectorControl;
 import control.DBInspectorResult;
 
-@WebServlet("/db-inspector")
+@WebServlet("/DB")
 public class DBInspectorServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         

@@ -26,7 +26,10 @@
         
         /* ボーダー色変更 */
         .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid var(--main-color); padding-bottom: 15px; }
-        h1 { margin: 0; font-size: 24px; }
+        
+        h1 { margin: 0; font-size: 24px; display: flex; align-items: center; gap: 10px; }
+        .title-icon { width: 32px; height: 32px; object-fit: contain; }
+
         .back-btn { background: #333; color: #fff; padding: 10px 20px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 14px; }
 
         table { width: 100%; border-collapse: collapse; }
@@ -46,7 +49,11 @@
 <body>
     <div class="container">
         <div class="header-area">
-            <h1>📜 注文履歴</h1>
+            <h1>
+                <!-- 履歴アイコン -->
+                <img src="${pageContext.request.contextPath}/image/system/履歴.svg" class="title-icon">
+                注文履歴
+            </h1>
             <a href="OrderHome" class="back-btn">メニューに戻る</a>
         </div>
 

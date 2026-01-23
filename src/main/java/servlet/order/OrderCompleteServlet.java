@@ -8,6 +8,7 @@ import jakarta.servlet.http.*;
 @WebServlet("/OrderComplete")
 public class OrderCompleteServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // お会計完了（清掃待ち）のJSPへ
         request.getRequestDispatcher("/WEB-INF/order/order_complete.jsp").forward(request, response);
     }
 }

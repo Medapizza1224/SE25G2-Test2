@@ -13,11 +13,10 @@ import modelUtil.Failure;
 @WebServlet("/OrderSetup")
 public class TableSetupServlet extends HttpServlet {
 
-    // 設定画面表示
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // 認証チェック
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("adminAuthForSetup") == null) {
+        // ★ adminAuthForSetup から terminalSetupAuth に変更
+        if (session == null || session.getAttribute("terminalSetupAuth") == null) {
             response.sendRedirect("Order");
             return;
         }
@@ -29,15 +28,13 @@ public class TableSetupServlet extends HttpServlet {
             request.getRequestDispatcher("/WEB-INF/order/table_setup.jsp").forward(request, response);
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.sendError(500);
         }
     }
 
-    // 開始・復旧処理
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        // 認証チェック
-        if (session == null || session.getAttribute("adminAuthForSetup") == null) {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("terminalSetupAuth") == null) {
             response.sendRedirect("Order");
             return;
         }
@@ -47,46 +44,39 @@ public class TableSetupServlet extends HttpServlet {
 
         try {
             if ("new".equals(action)) {
-                // --- 新規開始 ---
                 String tableNum = request.getParameter("tableNumber");
-                
-                // チェック実行
                 control.checkNewTable(tableNum);
 
-                // セッションをクリアして再作成（前の情報を消す）
-                session.invalidate();
-                session = request.getSession(true);
+                // セッションを一度リセット（ただし管理セッションを消さないよう属性削除で対応）
+                String adminMgmt = (String) session.getAttribute("adminNameManagement");
+                Object setupAuth = session.getAttribute("terminalSetupAuth");
                 
-                // テーブル番号をセットして人数選択へ
+                session.removeAttribute("tableNumber");
+                session.removeAttribute("order");
+                session.removeAttribute("cart");
+                
+                // 必要情報を再セット
                 session.setAttribute("tableNumber", tableNum);
+                session.setAttribute("terminalSetupAuth", setupAuth);
+                if (adminMgmt != null) session.setAttribute("adminNameManagement", adminMgmt);
+                
                 response.sendRedirect("CustomerCount");
 
             } else if ("recover".equals(action)) {
-                // --- 復旧 ---
                 String orderId = request.getParameter("orderId");
-                
-                // 注文情報取得
                 Order order = control.recoverOrder(orderId);
 
-                // セッションをクリアして再作成
-                session.invalidate();
-                session = request.getSession(true);
-
-                // 情報を復元
                 session.setAttribute("tableNumber", order.getTableNumber());
-                session.setAttribute("order", order); // 確定済みOrder
-                session.setAttribute("cart", new Cart()); // カートは空で開始
+                session.setAttribute("order", order);
+                session.setAttribute("cart", new Cart());
 
-                // メニュー画面へ直行（人数選択はスキップ）
                 response.sendRedirect("OrderHome");
             }
-
         } catch (Failure e) {
             request.setAttribute("error", e.getMessage());
-            doGet(request, response); // 画面再表示
+            doGet(request, response);
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "システムエラー");
             doGet(request, response);
         }
     }

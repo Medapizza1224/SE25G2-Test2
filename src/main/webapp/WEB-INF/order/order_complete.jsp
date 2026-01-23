@@ -1,112 +1,43 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ page import="util.AppConfig" %>
 <%
     AppConfig conf = AppConfig.load(application);
     request.setAttribute("conf", conf);
 %>
-
-<%-- セッションチェック --%>
-<c:if test="${empty sessionScope.tableNumber}">
-    <c:redirect url="/Order" />
-</c:if>
-
-<%
-    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    response.setHeader("Pragma", "no-cache");
-    response.setDateHeader("Expires", 0);
-%>
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>注文端末：完了</title>
+    <title>お会計完了</title>
     <style>
-        :root {
-            --main-color: ${not empty conf.themeColor ? conf.themeColor : '#FF6900'};
-        }
-        body { 
-            font-family: "Helvetica Neue", Arial, sans-serif; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            margin: 0; 
-            background-color: #f5f5f5;
-            color: #333;
-        }
-        .card {
-            background: #fff;
-            width: 80%;
-            max-width: 600px;
-            padding: 60px 40px;
-            border-radius: 24px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-        .logo {
-            height: 40px;
-            width: auto;
-            margin-bottom: 40px;
-            object-fit: contain;
-        }
-        
-        .check-icon {
-            width: 80px;
-            height: 80px;
-            background-color: #4CAF50;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 30px;
-            position: relative;
-        }
-        .check-icon::after {
-            content: '';
-            display: block;
-            width: 25px;
-            height: 45px;
-            border: solid white;
-            border-width: 0 6px 6px 0;
-            transform: rotate(45deg);
-            margin-top: -8px;
-        }
-
-        h2 { font-size: 28px; font-weight: bold; margin: 0 0 15px 0; color: #333; }
-        p { font-size: 16px; color: #888; margin: 0 0 50px 0; line-height: 1.6; }
-
-        .btn { 
-            background: var(--main-color); 
-            color: white; 
-            padding: 18px 100px; 
-            text-decoration: none; 
-            border-radius: 50px; 
-            font-weight: bold; 
-            font-size: 20px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: transform 0.1s, opacity 0.2s;
-            display: inline-block;
-        }
-        .btn:active { 
-            transform: scale(0.98);
-            opacity: 0.9; 
-        }
+        :root { --main-color: ${not empty conf.themeColor ? conf.themeColor : '#FF6900'}; }
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f5f5f5; }
+        .card { background: white; padding: 60px 40px; border-radius: 24px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 80%; max-width: 600px; }
+        #cleaning-area { margin-top: 40px; padding: 25px; border: 2px dashed var(--main-color); border-radius: 15px; background: #fff5f0; display: none; }
+        .btn { background: #000; color: #fff; padding: 15px 40px; border: none; border-radius: 30px; font-weight: bold; font-size: 18px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="card">
-        <img class="logo" src="${pageContext.request.contextPath}/image/logo/logo.svg?v=${applicationScope.logoVersion}" alt="ロゴ">
-        <div class="check-icon"></div>
-        <h2>ご注文を承りました</h2>
-        <p>スタッフが商品をお持ちします。<br>しばらくお待ちください。</p>
-        <a href="${pageContext.request.contextPath}/OrderHome" class="btn">メニューに戻る</a>
+        <img src="${pageContext.request.contextPath}/image/logo/logo.svg?v=${applicationScope.logoVersion}" style="height:40px; margin-bottom:30px;">
+        <div style="font-size:60px; margin-bottom:20px;">😊</div>
+        <h2>お会計が完了しました</h2>
+        <p>ご来店誠にありがとうございました。<br>またのお越しをお待ちしております。</p>
+
+        <div id="cleaning-area">
+            <p style="color:#e65e00; font-weight:bold; margin-bottom:15px;">【店員用操作】清掃完了確認</p>
+            <form action="${pageContext.request.contextPath}/OrderReset" method="post">
+                <button type="submit" class="btn">清掃完了（次のお客様を迎える）</button>
+            </form>
+        </div>
     </div>
+    <script>
+        // 10秒経過後に清掃完了ボタンを表示
+        setTimeout(() => {
+            document.getElementById('cleaning-area').style.display = 'block';
+        }, 10000);
+    </script>
 </body>
 </html>

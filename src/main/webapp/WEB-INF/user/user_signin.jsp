@@ -67,7 +67,7 @@
         <form action="${pageContext.request.contextPath}/User" method="post">
             <div class="input-group">
                 <span class="input-label">メールアドレス</span>
-                <input type="text" name="name" placeholder="" required>
+                <input type="text" name="name" value="${not empty name ? name : ''}" placeholder="" required>
             </div>
 
             <div class="input-group">
