@@ -18,81 +18,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>注文メニュー</title>
-    <style>
+<style>
         :root {
             --main-color: ${not empty conf.themeColor ? conf.themeColor : '#FF6900'};
         }
 
-        body { margin: 0; padding: 0; font-family: "Helvetica Neue", Arial, sans-serif; height: 100vh; display: flex; flex-direction: column; color: #333; }
+        body { margin: 0; padding: 0; font-family: "Helvetica Neue", Arial, sans-serif; height: 100vh; display: flex; flex-direction: column; color: #333; overflow: hidden; }
         a { text-decoration: none; }
         
-        .header { padding: 15px 20px; background: #333; color: #fff; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-        .header-title { 
-            font-size: 18px; font-weight: bold; 
-            display: flex; align-items: center; gap: 10px;
-        }
-        
-        /* ロゴ反転用クラス */
-        .logo-invert { filter: invert(1); }
-
+        .header { padding: 0 20px; background: #333; color: #fff; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; height: 60px; }
+        .header-title { font-size: 18px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+        .logo-invert { filter: invert(1); height: 24px; }
         .table-no { background: var(--main-color); padding: 5px 10px; border-radius: 4px; font-weight: bold; }
 
-        .container { display: flex; flex: 1; overflow: hidden; }
+        .container { display: flex; flex: 1; overflow: hidden; height: calc(100vh - 60px); }
 
-        .main-area { flex: 3; display: flex; flex-direction: column; background: #f4f4f4; border-right: 1px solid #ddd; min-width: 0; }
+        /* 左：商品エリア */
+        .main-area { flex: 1; display: flex; flex-direction: column; background: #f4f4f4; border-right: 1px solid #ddd; min-width: 0; }
         
         .category-bar { padding: 10px; background: #fff; display: flex; gap: 10px; overflow-x: auto; border-bottom: 1px solid #ddd; flex-shrink: 0; }
-        
-        .cat-btn { 
-            padding: 12px 25px; background: #eee; color: #333; border-radius: 30px; font-weight: bold; 
-            white-space: nowrap; transition: 0.3s; display: flex; align-items: center; gap: 5px;
-        }
-        .cat-btn.active { background: var(--main-color); color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        
-        .cat-icon { width: 20px; height: 20px; object-fit: contain; }
+        .cat-btn { padding: 10px 20px; background: #eee; color: #333; border-radius: 30px; font-weight: bold; white-space: nowrap; font-size: 14px; display: flex; align-items: center; gap: 5px; }
+        .cat-btn.active { background: var(--main-color); color: #fff; }
+        .cat-icon { width: 18px; height: 18px; object-fit: contain; }
 
+        /* --- 修正ポイント：パーセント指定で横4列を死守 --- */
         .product-grid { 
             padding: 20px; 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
+            /* 23%にすることで、余白を含めてちょうど「横4列」になります。幅が狭まれば自動で3列、2列に変わります */
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 23%), 1fr)); 
             gap: 20px; 
-            overflow-y: auto; flex: 1; min-height: 0; align-content: start;
+            overflow-y: auto; 
+            flex: 1; 
+            min-height: 0; 
+            align-content: start;
         }
 
-        .product-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s; height: fit-content; }
-        .product-card:active { transform: scale(0.98); }
-        .p-img { width: 100%; object-fit: cover; background: #ddd; }
-        .p-info { padding: 15px; }
-        .p-name { font-weight: bold; font-size: 16px; margin-bottom: 8px; }
-        
-        .p-price { color: var(--main-color); font-weight: bold; font-size: 15px; }
+        .product-card { 
+            background: #fff; border-radius: 12px; overflow: hidden; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; 
+            display: flex; flex-direction: column;
+            height: fit-content;
+        }
 
-        .sidebar { flex: 1; min-width: 320px; max-width: 400px; background: #fff; display: flex; flex-direction: column; box-shadow: -2px 0 10px rgba(0,0,0,0.05); z-index: 10; }
+        /* --- 修正ポイント：重なりを物理的に防ぐ --- */
+        .p-img { 
+            width: 100%; 
+            aspect-ratio: 4 / 3; /* 画像の高さを比率で固定（絶対重ならない） */
+            object-fit: cover; 
+            background: #ddd; 
+            display: block;
+        }
+
+        .p-info { padding: 15px; flex-grow: 1; }
+        .p-name { font-weight: bold; font-size: 16px; margin-bottom: 8px; line-height: 1.4; }
+        .p-price { color: var(--main-color); font-weight: bold; font-size: 16px; }
+
+        /* サイドバー：1920以上の画面でバランスが良い幅に固定 */
+        .sidebar { width: 380px; flex-shrink: 0; background: #fff; display: flex; flex-direction: column; box-shadow: -2px 0 10px rgba(0,0,0,0.05); z-index: 10; }
         .cart-header { padding: 20px; border-bottom: 1px solid #eee; font-weight: bold; font-size: 18px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
         
-        /* システムアイコン用 */
-        .sys-icon { width: 24px; height: 24px; object-fit: contain; }
-        /* ボタン内の白アイコン用 */
-        .sys-icon-white { width: 20px; height: 20px; object-fit: contain; filter: invert(1); margin-right: 5px; vertical-align: text-bottom; }
-
         .cart-list { flex: 1; overflow-y: auto; padding: 10px; min-height: 0; }
-        .cart-item { display: flex; gap: 10px; padding: 15px; border-bottom: 1px solid #f9f9f9; align-items: center; }
-        .c-img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; background: #eee; }
-        .c-details { flex: 1; }
-        .c-name { font-weight: bold; font-size: 14px; margin-bottom: 4px; }
-        .c-meta { font-size: 12px; color: #666; }
-        .c-price { font-weight: bold; color: #333; margin-top: 4px; }
-        .del-btn { background: #eee; border: none; width: 30px; height: 30px; border-radius: 50%; color: #666; cursor: pointer; font-size: 16px; display: flex; justify-content: center; align-items: center; }
-
+        .cart-item { display: flex; gap: 10px; padding: 12px; border-bottom: 1px solid #f9f9f9; align-items: center; }
+        .c-img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; }
+        
         .cart-footer { padding: 20px; background: #fff; border-top: 1px solid #eee; flex-shrink: 0; }
         .total-row { display: flex; justify-content: space-between; font-size: 20px; font-weight: bold; margin-bottom: 20px; }
+        .order-btn { display: block; width: 100%; padding: 18px; background: var(--main-color); color: #fff; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; text-align: center; }
         
-        .order-btn { display: block; width: 100%; padding: 18px; background: var(--main-color); color: #fff; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .order-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
-
         .sub-menu { display: flex; gap: 10px; margin-top: 15px; }
         .sub-btn { flex: 1; padding: 12px; background: #333; color: #fff; border-radius: 8px; text-align: center; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; }
-        .sub-btn:hover { opacity: 0.8; }
+
+        /* ブラウザの標準スクロールバーを少し細くして場所を取らないようにする */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
     </style>
 </head>
 <body>
